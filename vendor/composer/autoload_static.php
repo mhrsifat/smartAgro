@@ -610,6 +610,7 @@ class ComposerStaticInitadb4b680144df947b976ddb89b6572b1
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\CropController' => __DIR__ . '/../..' . '/app/Http/Controllers/CropController.php',
         'App\\Http\\Controllers\\DiseaseController' => __DIR__ . '/../..' . '/app/Http/Controllers/DiseaseController.php',
+        'App\\Jobs\\AnalyzeCropImages' => __DIR__ . '/../..' . '/app/Jobs/AnalyzeCropImages.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',

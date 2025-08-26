@@ -10,6 +10,7 @@ return array(
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\CropController' => $baseDir . '/app/Http/Controllers/CropController.php',
     'App\\Http\\Controllers\\DiseaseController' => $baseDir . '/app/Http/Controllers/DiseaseController.php',
+    'App\\Jobs\\AnalyzeCropImages' => $baseDir . '/app/Jobs/AnalyzeCropImages.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
