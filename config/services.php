@@ -47,4 +47,9 @@ return [
     'redirect' => env('GITHUB_REDIRECT'),
 ],
 
+'providers' => [
+    // Other service providers...
+    App\Providers\BroadcastServiceProvider::class,
+],
+
 ];

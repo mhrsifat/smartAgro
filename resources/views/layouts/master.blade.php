@@ -51,20 +51,22 @@
     }
 
     // Initialize Echo (CDN build)
-    window.Echo = new Echo({
-        broadcaster: 'pusher',
-        key: "{{ config('broadcasting.connections.pusher.key') }}",
-        cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
-        forceTLS: location.protocol === 'https:',
-        // Full URL for auth endpoint is safer (handles base path correctly)
-        authEndpoint: "{{ url('/broadcasting/auth') }}",
-        auth: {
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json'
-            }
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : null;
+
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    key: "{{ config('broadcasting.connections.pusher.key') }}",
+    cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
+    forceTLS: location.protocol === 'https:',
+    authEndpoint: "{{ url('/broadcasting/auth') }}",
+    auth: {
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
         }
-    });
+    }
+});
 
     // Helpful debug: log subscription/auth failures
     try {
