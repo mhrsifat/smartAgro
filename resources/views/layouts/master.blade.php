@@ -50,10 +50,6 @@
       Pusher.logToConsole = true;
     }
 
-    // Initialize Echo (CDN build)
-    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : null;
-
 window.Echo = new Echo({
     broadcaster: 'pusher',
     key: "{{ config('broadcasting.connections.pusher.key') }}",
