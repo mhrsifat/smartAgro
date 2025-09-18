@@ -14,18 +14,27 @@ class DiagnosisUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public string $status;
-    public ?string $diagnosis;
     public ?string $userKey;
+    public ?int $diagnosisId;
 
-    public function __construct(string $status, ?string $diagnosis = null, ?string $userKey = null)
+    public function __construct(string $status, ?string $userKey = null, ?int $diagnosisId = null)
     {
         $this->status = $status;
-        $this->diagnosis = $diagnosis;
         $this->userKey = $userKey;
+        $this->diagnosisId = $diagnosisId;
+    }
+    
+     public function broadcastOn()
+    {
+        return new PrivateChannel('diagnosis.' . ($this->userKey ?? 'guest'));
     }
 
-    public function broadcastOn(): Channel
-{
-    return new PrivateChannel('diagnosis.' . ($this->userKey ?? 'guest'));
-}
+    public function broadcastWith()
+    {
+        return [
+            'status' => $this->status,
+            'diagnosis_id' => $this->diagnosisId,
+            'message' => $this->status === 'completed' ? 'Diagnosis ready' : $this->status,
+        ];
+    }
 }

@@ -139,38 +139,38 @@ End the report with a one-line actionable next step: e.g., **"Next step:** conta
 
             $converter = new CommonMarkConverter();
             $html = (string) $converter->convert($diagnosisText);
-
-            // Step 5: Cache and broadcast completed result
-            Cache::put($cacheKey, ['status' => 'completed', 'diagnosis' => $html], now()->addMinutes(60));
-            event(new DiagnosisUpdated('completed', $html, $this->userKey));
-            Log::info('AnalyzeCropImages: Diagnosis cached', ['key' => $cacheKey, 'length' => strlen($html)]);
-
-            // Optional: save HTML for manual inspection
-            // create unique filename per userKey or timestamp
+            
+            
+            // after generating $html and saving to storage ($filename)
 $idPart = $this->userKey ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $this->userKey) : now()->format('YmdHis');
 $filename = "results/diagnosis_{$idPart}_" . uniqid() . ".html";
+$filename = $filename ?? null; // path relative to public disk: results/...
 Storage::disk('public')->put($filename, $html);
 
-// determine file path stored
-$filePath = $filename ?? null;
+// create DB record (save metadata)
+$diagnosis = \App\Models\Diagnosis::create([
+    'user_id' => is_numeric($this->userKey) ? (int) $this->userKey : null,
+    'user_key' => $this->userKey,
+    'status' => 'completed',
+    'file_path' => $filename,
+    'excerpt' => \Illuminate\Support\Str::limit(strip_tags($diagnosisText), 300),
+    'html_length' => strlen($html),
+]);
 
-// notify authenticated user if userKey is numeric user id
-if ($this->userKey && is_numeric($this->userKey)) {
-    $user = User::find((int)$this->userKey);
-    if ($user) {
-        $user->notify(new DiagnosisReady('completed', $html, $filePath));
-    } else {
-        // fallback: broadcast to public channel with event (keeps previous DiagnosisUpdated event)
-        event(new DiagnosisUpdated('completed', $html, $this->userKey));
-    }
-} else {
-    // guest or unknown userKey: broadcast generic event
-    event(new DiagnosisUpdated('completed', $html, $this->userKey));
-}
-
-// also store path in cache for quick lookup
+// cache key for quick status lookups
+Cache::put($cacheKey, ['status' => 'completed', 'diagnosis_id' => $diagnosis->id], now()->addMinutes(60));
 Cache::put($cacheKey . '_file', $filename, now()->addHours(1));
 
+// Broadcast small payload (avoid sending full html)
+event(new \App\Events\DiagnosisUpdated('completed', null, $this->userKey, $diagnosis->id));
+
+// Notify user (notification should also avoid sending full html)
+if ($diagnosis->user_id) {
+    $user = \App\Models\User::find($diagnosis->user_id);
+    if ($user) {
+        $user->notify(new \App\Notifications\DiagnosisReady('completed', '', $diagnosis->id));
+    }
+}
         } catch (\Throwable $e) {
             $err = 'Error: ' . $e->getMessage();
             Cache::put($cacheKey, ['status' => 'failed', 'diagnosis' => $err], now()->addMinutes(30));

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use App\Jobs\AnalyzeCropImages;
+use App\Models\Diagnosis;
 
 class DiseaseController extends Controller
 {
@@ -12,6 +14,29 @@ class DiseaseController extends Controller
    public function diseasePage()
     {
         return view('diseasePage');
+    }
+    
+    public function show(Request $request, $id)
+    {
+        $diagnosis = Diagnosis::findOrFail($id);
+
+        // authorize: if record has user_id, ensure current user owns it
+        if ($diagnosis->user_id && $request->user()->id !== $diagnosis->user_id) {
+            abort(403);
+        }
+
+        $html = null;
+        if ($diagnosis->file_path && Storage::disk('public')->exists($diagnosis->file_path)) {
+            $html = Storage::disk('public')->get($diagnosis->file_path);
+        }
+
+        return response()->json([
+            'id' => $diagnosis->id,
+            'status' => $diagnosis->status,
+            'excerpt' => $diagnosis->excerpt,
+            'html' => $html,
+            'file_path' => $diagnosis->file_path ? Storage::disk('public')->url($diagnosis->file_path) : null,
+        ]);
     }
     
     public function analyze(Request $request)
@@ -53,3 +78,4 @@ class DiseaseController extends Controller
         ]);
     }
 }
+

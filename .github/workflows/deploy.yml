@@ -47,7 +47,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd /home/mhrsifa1/smartagro.mhrsifat.xyz
+            cd /home/${{ secrets.SERVER_USER }}/smartagro.mhrsifat.xyz
             git reset --hard
             git pull origin main
             composer install --no-dev --optimize-autoloader

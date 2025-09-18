@@ -11,17 +11,15 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 class DiagnosisReady extends Notification implements ShouldQueue
 {
     use Queueable;
-
     public string $status;
-    public string $html;
-    public string $filePath;
+    public ?int $diagnosisId;
 
-    public function __construct(string $status, string $html = '', string $filePath = '')
+    public function __construct(string $status, ?string $htmlOrEmpty = '', ?int $diagnosisId = null)
     {
         $this->status = $status;
-        $this->html = $html;
-        $this->filePath = $filePath;
+        $this->diagnosisId = $diagnosisId;
     }
+    
 
     /**
      * Get the notification's delivery channels.
@@ -46,7 +44,8 @@ class DiagnosisReady extends Notification implements ShouldQueue
         return [
             'status' => $this->status,
             'message' => $this->status === 'completed' ? 'Diagnosis ready' : $this->status,
-            'file' => $this->filePath,
+            'url' => route('diagnosis.result.show', ['id' => $this->diagnosisId]),
+            'diagnosis_id' => $this->diagnosisId,
         ];
     }
 
@@ -54,8 +53,8 @@ class DiagnosisReady extends Notification implements ShouldQueue
     {
         return new BroadcastMessage([
             'status' => $this->status,
-            'html' => $this->html,
-            'file' => $this->filePath,
+            'message' => $this->status === 'completed' ? 'Diagnosis ready' : $this->status,
+            'diagnosis_id' => $this->diagnosisId,
         ]);
     }
 }

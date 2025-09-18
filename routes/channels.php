@@ -12,5 +12,5 @@ Broadcast::channel('chat', function ($user) {
 });
 
 Broadcast::channel('diagnosis.{userId}', function ($user, $userId) {
-    return (string)$user->id === (string)$userId;
+    return (int) $user->id === (int) $userId;
 });
