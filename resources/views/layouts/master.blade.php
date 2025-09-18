@@ -132,7 +132,7 @@ function removeToast(toast) {
 function fetchFullDiagnosisHtml(diagnosisId) {
     if (!diagnosisId) return Promise.reject('no id');
     return fetch(`/diagnoses/${diagnosisId}`, {
-        credentials: 'same-origin',
+        credentials: 'include',
         headers: { 'Accept': 'application/json' }
     }).then(r => {
         if (!r.ok) throw new Error('Failed to fetch report: ' + r.status);

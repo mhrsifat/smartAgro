@@ -61,9 +61,7 @@ Route::get('/user/email/verify-new', [ProfileController::class, 'verifyNewEmail'
 Route::get('/user/email/cancel-change', [ProfileController::class, 'cancelEmailChange'])
     ->name('user.email.cancel');
     
-    
-    
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/diagnoses/{id}', [DiseaseController::class, 'show'])->name('diagnosis.result.show');
-});
+
+
+Route::get('/diagnoses/{id}', [DiseaseController::class, 'show'])->name('diagnosis.result.show');
 
