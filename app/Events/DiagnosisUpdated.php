@@ -16,25 +16,100 @@ class DiagnosisUpdated implements ShouldBroadcast
     public string $status;
     public ?string $userKey;
     public ?int $diagnosisId;
+    public ?string $message;
 
-    public function __construct(string $status, ?string $userKey = null, ?int $diagnosisId = null)
+    /**
+     * Create a new event instance.
+     *
+     * @param string $status The status of the diagnosis (processing, completed, failed)
+     * @param string|null $userKey The user key for channel broadcasting
+     * @param int|null $diagnosisId The diagnosis ID
+     * @param string|null $message Custom message to display
+     */
+    public function __construct(string $status, ?string $userKey = null, ?int $diagnosisId = null, ?string $message = null)
     {
         $this->status = $status;
         $this->userKey = $userKey;
         $this->diagnosisId = $diagnosisId;
+        $this->message = $message;
     }
     
-     public function broadcastOn()
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return Channel
+     */
+    public function broadcastOn()
     {
-        return new PrivateChannel('diagnosis.' . ($this->userKey ?? 'guest'));
+        // Extract user ID from userKey if it's in format 'user_123'
+        $userId = $this->extractUserIdFromKey($this->userKey);
+        
+        return new PrivateChannel('diagnosis.' . $userId);
     }
 
+    /**
+     * The event's broadcast name.
+     *
+     * @return string
+     */
+    public function broadcastAs()
+    {
+        return 'DiagnosisUpdated';
+    }
+
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array
+     */
     public function broadcastWith()
     {
         return [
             'status' => $this->status,
             'diagnosis_id' => $this->diagnosisId,
-            'message' => $this->status === 'completed' ? 'Diagnosis ready' : $this->status,
+            'message' => $this->message ?? $this->getDefaultMessage(),
+            'user_key' => $this->userKey,
         ];
+    }
+
+    /**
+     * Extract user ID from user key
+     *
+     * @param string|null $userKey
+     * @return string
+     */
+    private function extractUserIdFromKey(?string $userKey): string
+    {
+        if (!$userKey) {
+            return 'guest';
+        }
+
+        // If userKey is in format 'user_123', extract '123'
+        if (preg_match('/user_(\d+)/', $userKey, $matches)) {
+            return $matches[1];
+        }
+
+        // If userKey is already a number, use it directly
+        if (is_numeric($userKey)) {
+            return $userKey;
+        }
+
+        // Fallback to the original userKey
+        return $userKey;
+    }
+
+    /**
+     * Get default message based on status
+     *
+     * @return string
+     */
+    private function getDefaultMessage(): string
+    {
+        return match($this->status) {
+            'processing' => 'Analyzing your crop images...',
+            'completed' => 'Diagnosis complete! Click to view results.',
+            'failed' => 'Diagnosis failed. Please try again.',
+            default => ucfirst($this->status)
+        };
     }
 }

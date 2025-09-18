@@ -7,15 +7,16 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Jobs\AnalyzeCropImages;
 use App\Models\Diagnosis;
+use Illuminate\Support\Facades\Auth;
 
 class DiseaseController extends Controller
 {
-  
-   public function diseasePage()
+
+    public function diseasePage()
     {
         return view('diseasePage');
     }
-    
+
     public function show(Request $request, $id)
     {
         $diagnosis = Diagnosis::findOrFail($id);
@@ -35,10 +36,10 @@ class DiseaseController extends Controller
             'status' => $diagnosis->status,
             'excerpt' => $diagnosis->excerpt,
             'html' => $html,
-            'file_path' => $diagnosis->file_path ? Storage::disk('public')->url($diagnosis->file_path) : null,
+            'file_path' => $diagnosis->file_path ? asset('storage/' . $diagnosis->file_path) : null,
         ]);
     }
-    
+
     public function analyze(Request $request)
     {
         $request->validate([
@@ -55,10 +56,12 @@ class DiseaseController extends Controller
             $paths[] = $path;
         }
 
+        $userId = auth()->check() ? auth()->id() : null;
         $userKey = auth()->check() ? 'user_' . auth()->id() : 'guest_' . session()->getId();
+
         Cache::forget('diagnosis_all_' . $userKey);
 
-        AnalyzeCropImages::dispatch($paths, $userKey);
+        AnalyzeCropImages::dispatch($paths, $userKey, $userId);
 
         return response()->json(['uploadedImages' => $uploadedImages, 'userKey' => $userKey]);
     }
@@ -78,4 +81,3 @@ class DiseaseController extends Controller
         ]);
     }
 }
-

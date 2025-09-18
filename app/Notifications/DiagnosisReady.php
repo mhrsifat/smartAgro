@@ -11,15 +11,24 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 class DiagnosisReady extends Notification implements ShouldQueue
 {
     use Queueable;
+
     public string $status;
     public ?int $diagnosisId;
+    public ?string $message;
 
-    public function __construct(string $status, ?string $htmlOrEmpty = '', ?int $diagnosisId = null)
+    /**
+     * Create a new notification instance.
+     *
+     * @param string $status
+     * @param int|null $diagnosisId  
+     * @param string|null $message
+     */
+    public function __construct(string $status, ?int $diagnosisId = null, ?string $message = null)
     {
         $this->status = $status;
         $this->diagnosisId = $diagnosisId;
+        $this->message = $message ?? ($status === 'completed' ? 'Diagnosis ready' : ucfirst($status));
     }
-    
 
     /**
      * Get the notification's delivery channels.
@@ -30,32 +39,36 @@ class DiagnosisReady extends Notification implements ShouldQueue
     {
         return ['database', 'broadcast'];
     }
-    
-    /** public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    } */
 
+    /**
+     * Get the array representation of the notification for database.
+     *
+     * @param mixed $notifiable
+     * @return array
+     */
     public function toArray($notifiable)
     {
         return [
             'status' => $this->status,
-            'message' => $this->status === 'completed' ? 'Diagnosis ready' : $this->status,
-            'url' => route('diagnosis.result.show', ['id' => $this->diagnosisId]),
+            'message' => $this->message,
             'diagnosis_id' => $this->diagnosisId,
+            'url' => $this->diagnosisId ? route('diagnosis.result.show', ['id' => $this->diagnosisId]) : null,
         ];
     }
 
+    /**
+     * Get the broadcastable representation of the notification.
+     *
+     * @param mixed $notifiable
+     * @return BroadcastMessage
+     */
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([
             'status' => $this->status,
-            'message' => $this->status === 'completed' ? 'Diagnosis ready' : $this->status,
+            'message' => $this->message,
             'diagnosis_id' => $this->diagnosisId,
+            'url' => $this->diagnosisId ? route('diagnosis.result.show', ['id' => $this->diagnosisId]) : null,
         ]);
     }
 }
-

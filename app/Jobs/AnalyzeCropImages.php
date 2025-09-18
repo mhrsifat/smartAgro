@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Notifications\DiagnosisReady;
 use App\Models\User;
 use Illuminate\Notifications\Notification as NotificationFacade;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Diagnosis;
 
 class AnalyzeCropImages implements ShouldQueue
 {
@@ -23,21 +25,26 @@ class AnalyzeCropImages implements ShouldQueue
 
     protected array $imagePaths;
     protected ?string $userKey;
+    protected ?int $userId;
 
-    public function __construct(array $imagePaths, ?string $userKey = null)
+    public function __construct(array $imagePaths, ?string $userKey = null, ?int $userId = null)
     {
         $this->imagePaths = $imagePaths;
-        $this->userKey = $userKey; // For user-specific broadcast & cache
+        $this->userKey = $userKey;
+        $this->userId = $userId;
     }
 
     public function handle(): void
     {
         $cacheKey = 'diagnosis_all_' . ($this->userKey ?? 'guest');
+        $diagnosis = null; // Initialize diagnosis variable
 
         try {
             // Step 1: Set initial state
             Cache::put($cacheKey, ['status' => 'processing', 'diagnosis' => null], now()->addMinutes(30));
-            event(new DiagnosisUpdated('processing', null, $this->userKey));
+            
+            // ✅ FIXED: Correct parameter order (status, userKey, diagnosisId, message)
+            event(new DiagnosisUpdated('processing', $this->userKey, null, 'Starting analysis...'));
             Log::info('AnalyzeCropImages started', ['images' => $this->imagePaths]);
 
             // Step 2: Build API request
@@ -54,7 +61,7 @@ Required sections and format:
    - 2–3 short sentences summarizing the overall findings and confidence.
 
 2. ## Per-image observations  
-   - For each image (label as **Image 1: \<filename\>**, **Image 2: \<filename\>**, ...):  
+   - For each image (label as **Image 1: \<imageinfo\>**, **Image 2: \<imageinfo\>**, ...):  
      - ### Observed symptoms  
        - Bullet list of visible signs (short phrases).  
      - ### Immediate impression (differential)  
@@ -95,7 +102,7 @@ Formatting rules:
 - **Do not output HTML** — only Markdown.  
 - If any image is unreadable or missing, note it under Per-image observations (e.g., "Image 3: unreadable / low resolution").
 
-Important: Include Bangla translations in parentheses immediately after any English technical term you use (for example: "active ingredient (সক্রিয় উপাদান)"), to help local extension workers.
+Important: Include Bangla translations in parentheses immediately after any English technical term you use (for example: "active ingredient (সক্রিয় উপাদান)"), to help local extension workers.
 
 End the report with a one-line actionable next step: e.g., **"Next step:** contact the nearest agricultural officer and send 1 fresh symptomatic leaf sample."**
 '
@@ -125,7 +132,9 @@ End the report with a one-line actionable next step: e.g., **"Next step:** conta
             if (! $response->successful()) {
                 $errMsg = 'API request failed: ' . $response->status();
                 Cache::put($cacheKey, ['status' => 'failed', 'diagnosis' => 'Error: ' . $errMsg], now()->addMinutes(30));
-                event(new DiagnosisUpdated('failed', $errMsg, $this->userKey));
+                
+                // ✅ FIXED: Correct parameter order
+                event(new DiagnosisUpdated('failed', $this->userKey, null, $errMsg));
                 Log::error('AnalyzeCropImages: API request failed', ['status' => $response->status(), 'body' => $response->body()]);
                 return;
             }
@@ -140,42 +149,46 @@ End the report with a one-line actionable next step: e.g., **"Next step:** conta
             $converter = new CommonMarkConverter();
             $html = (string) $converter->convert($diagnosisText);
             
+            // Step 5: Save result and create database record
+            $idPart = $this->userKey ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $this->userKey) : now()->format('YmdHis');
+            $filename = "results/diagnosis_{$idPart}_" . uniqid() . ".html";
+            Storage::disk('public')->put($filename, $html);
+
+            // Create DB record (save metadata)
+            $diagnosis = Diagnosis::create([
+                'user_id'    => $this->userId !== null ? (int) $this->userId : null,
+                'user_key' => $this->userKey,
+                'status' => 'completed',
+                'file_path' => $filename,
+                'excerpt' => \Illuminate\Support\Str::limit(strip_tags($diagnosisText), 300),
+                'html_length' => strlen($html),
+            ]);
+
+            // Step 6: Update cache and broadcast success
+            Cache::put($cacheKey, ['status' => 'completed', 'diagnosis_id' => $diagnosis->id], now()->addMinutes(60));
+            Cache::put($cacheKey . '_file', $filename, now()->addHours(1));
+
             
-            // after generating $html and saving to storage ($filename)
-$idPart = $this->userKey ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $this->userKey) : now()->format('YmdHis');
-$filename = "results/diagnosis_{$idPart}_" . uniqid() . ".html";
-$filename = $filename ?? null; // path relative to public disk: results/...
-Storage::disk('public')->put($filename, $html);
+            event(new DiagnosisUpdated('completed', $this->userKey, $diagnosis->id, 'Diagnosis completed successfully!'));
 
-// create DB record (save metadata)
-$diagnosis = \App\Models\Diagnosis::create([
-    'user_id' => is_numeric($this->userKey) ? (int) $this->userKey : null,
-    'user_key' => $this->userKey,
-    'status' => 'completed',
-    'file_path' => $filename,
-    'excerpt' => \Illuminate\Support\Str::limit(strip_tags($diagnosisText), 300),
-    'html_length' => strlen($html),
-]);
+            // Step 7: Notify user if they have an ID
+            if ($diagnosis->user_id) {
+                $user = \App\Models\User::find($diagnosis->user_id);
+                if ($user) {
+                    $user->notify(new \App\Notifications\DiagnosisReady('completed', $diagnosis->id, 'Diagnosis completed successfully!'));
+                }
+            }
 
-// cache key for quick status lookups
-Cache::put($cacheKey, ['status' => 'completed', 'diagnosis_id' => $diagnosis->id], now()->addMinutes(60));
-Cache::put($cacheKey . '_file', $filename, now()->addHours(1));
+            Log::info('AnalyzeCropImages completed successfully', ['diagnosis_id' => $diagnosis->id]);
 
-// Broadcast small payload (avoid sending full html)
-event(new \App\Events\DiagnosisUpdated('completed', null, $this->userKey, $diagnosis->id));
-
-// Notify user (notification should also avoid sending full html)
-if ($diagnosis->user_id) {
-    $user = \App\Models\User::find($diagnosis->user_id);
-    if ($user) {
-        $user->notify(new \App\Notifications\DiagnosisReady('completed', '', $diagnosis->id));
-    }
-}
         } catch (\Throwable $e) {
             $err = 'Error: ' . $e->getMessage();
             Cache::put($cacheKey, ['status' => 'failed', 'diagnosis' => $err], now()->addMinutes(30));
-            event(new DiagnosisUpdated('failed', $err, $this->userKey));
-            Log::error('AnalyzeCropImages failed', ['exception' => $e->getMessage()]);
+            
+            // ✅ FIXED: Broadcast error with correct parameter order
+            // Note: $diagnosis might be null if error occurred before creation
+            event(new DiagnosisUpdated('failed', $this->userKey, $diagnosis?->id, $err));
+            Log::error('AnalyzeCropImages failed', ['exception' => $e->getMessage(), 'userKey' => $this->userKey]);
         }
     }
 }

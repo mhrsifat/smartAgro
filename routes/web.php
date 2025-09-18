@@ -64,6 +64,6 @@ Route::get('/user/email/cancel-change', [ProfileController::class, 'cancelEmailC
     
     
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/diagnoses/{id}', [DiagnosisController::class, 'show'])->name('diagnosis.result.show');
+    Route::get('/diagnoses/{id}', [DiseaseController::class, 'show'])->name('diagnosis.result.show');
 });
 
