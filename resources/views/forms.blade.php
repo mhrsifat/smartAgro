@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="forms">
 
             <x-headings.page-title title="Forms" />
            <x-headings.section-title title="Create a new contact" />

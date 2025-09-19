@@ -27,11 +27,11 @@
   <x-sidebar.dropdown title="Blog" icon="icons.blog">
     <x-sidebar.dropdown-link
       title="Create new Blog"
-      url="{{ route('admin.create.account') }}"
+      url="{{ route('admin.blogs.create') }}"
       />
     <x-sidebar.dropdown-link
       title="View Blog"
-      url="{{ route('admin.forgot.password') }}"
+      url="{{ route('admin.blogs.index') }}"
       />
   </x-sidebar.dropdown>
 

@@ -75,7 +75,12 @@
             "dont-discover": [
                 "laravel/pail"
             ]
-        }
+        },
+        "merge-plugin": {
+        "include": [
+            "Modules/*/composer.json"
+        ]
+    }
     },
     "config": {
         "optimize-autoloader": true,
