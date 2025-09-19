@@ -44,7 +44,7 @@
                 <x-layout.body>
                     {{ $slot }}
                 </x-layout.body>
-                <!-- Body -->
+                <!-- /Body -->
 
             </x-layout.main>
             <!-- /Main Layout -->
