@@ -20,6 +20,8 @@ Route::get('/whoami', function () {
     return \Illuminate\Support\Facades\Auth::user() ?: 'NO USER';
 });
 
+require __DIR__.'/admin.php';
+
 
 Route::get('/', [HomeController::class, 'home'])->name('home');
 
@@ -64,4 +66,5 @@ Route::get('/user/email/cancel-change', [ProfileController::class, 'cancelEmailC
 
 
 Route::get('/diagnoses/{id}', [DiseaseController::class, 'show'])->name('diagnosis.result.show');
+
 

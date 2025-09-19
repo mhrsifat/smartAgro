@@ -189,55 +189,123 @@
 
 <!-- Robust Livewire-safe script: waits for livewire to be ready, queues emits, prevents duplicate handlers -->
 <script>
-  // global emit queue (idempotent)
-  window._livewireEmitQueue = window._livewireEmitQueue || [];
-
-  function emitWhenLivewire(eventName, ...args) {
-    if (window.Livewire && typeof Livewire.emit === 'function') {
-      Livewire.emit(eventName, ...args);
-      return;
+  (function () {
+    // --- Utility ---
+    const emitQueue = [];
+    function safeEmit(event, ...args) {
+      if (window.Livewire?.emit) {
+        window.Livewire.emit(event, ...args);
+      } else {
+        emitQueue.push([event, args]);
+      }
     }
-    window._livewireEmitQueue.push({ eventName, args });
-  }
+    window.emitWhenLivewire = safeEmit;
 
-  document.addEventListener('livewire:load', function () {
-    // flush queue when Livewire is ready
-    if (window._livewireEmitQueue && window.Livewire && typeof Livewire.emit === 'function') {
-      window._livewireEmitQueue.forEach(item => {
-        Livewire.emit(item.eventName, ...item.args);
-      });
-      window._livewireEmitQueue = [];
+    function flushQueue() {
+      if (!window.Livewire?.emit) return;
+      while (emitQueue.length) {
+        const [event, args] = emitQueue.shift();
+        Livewire.emit(event, ...args);
+      }
     }
 
-    // add a single click-outside handler (guard to avoid duplicates on re-renders)
-    if (!window._headerClickHandlerAdded) {
-      window._headerClickHandlerAdded = true;
+    function bindClickOutside() {
+      if (window._headerClickBound) return;
+      window._headerClickBound = true;
 
-      document.addEventListener('click', function (e) {
-        if (!e.target.closest('.header-root')) {
-          emitWhenLivewire('closeAll');
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".header-root")) {
+          safeEmit("closeAll");
         }
       });
     }
-  });
 
-  // Safety: if Livewire never fires 'livewire:load' (rare), also try to bind after DOMContentLoaded
-  document.addEventListener('DOMContentLoaded', function () {
-    // if Livewire already ready, 'livewire:load' may have fired; ensure queue handled
-    if (window.Livewire && typeof Livewire.emit === 'function') {
-      if (window._livewireEmitQueue && window._livewireEmitQueue.length) {
-        window._livewireEmitQueue.forEach(item => Livewire.emit(item.eventName, ...item.args));
-        window._livewireEmitQueue = [];
-      }
-      // ensure handler installed
-      if (!window._headerClickHandlerAdded) {
-        window._headerClickHandlerAdded = true;
-        document.addEventListener('click', function (e) {
-          if (!e.target.closest('.header-root')) {
-            Livewire.emit && typeof Livewire.emit === 'function' && Livewire.emit('closeAll');
+    // --- Smooth animations ---
+    function enableSmoothTransitions() {
+      // Desktop dropdowns
+      document.querySelectorAll(".header-root .group").forEach((group) => {
+        const menu = group.querySelector("ul");
+        if (!menu) return;
+
+        menu.classList.add(
+          "transition-all", "duration-200", "ease-out",
+          "opacity-0", "scale-95", "pointer-events-none"
+        );
+
+        group.addEventListener("mouseenter", () => {
+          menu.classList.remove("opacity-0", "scale-95", "pointer-events-none");
+          menu.classList.add("opacity-100", "scale-100");
+        });
+
+        group.addEventListener("mouseleave", () => {
+          menu.classList.remove("opacity-100", "scale-100");
+          menu.classList.add("opacity-0", "scale-95", "pointer-events-none");
+        });
+      });
+
+      // Mobile collapsibles (service + lang)
+      document.querySelectorAll("#mobileMenu ul > li > button").forEach((btn) => {
+        const panel = btn.nextElementSibling;
+        if (!panel) return;
+
+        panel.classList.add(
+          "transition-all", "duration-200", "ease-out",
+          "max-h-0", "overflow-hidden"
+        );
+
+        btn.addEventListener("click", () => {
+          const isOpen = !panel.classList.contains("max-h-0");
+          if (isOpen) {
+            panel.classList.add("max-h-0");
+          } else {
+            panel.classList.remove("max-h-0");
+            panel.style.maxHeight = panel.scrollHeight + "px";
           }
         });
+      });
+
+      // Mobile menu slide-in/out
+      const mobileMenu = document.getElementById("mobileMenu");
+      if (mobileMenu) {
+        mobileMenu.classList.add(
+          "fixed", "top-0", "left-0", "h-full", "w-64",
+          "transform", "-translate-x-full",
+          "transition-transform", "duration-300", "ease-in-out",
+          "z-40", "shadow-lg"
+        );
+
+        // Observe attribute changes from Livewire (aria-expanded)
+        const toggleBtn = document.querySelector(
+          'button[aria-controls="mobileMenu"]'
+        );
+
+        if (toggleBtn) {
+          const observer = new MutationObserver(() => {
+            const expanded = toggleBtn.getAttribute("aria-expanded") === "true";
+            if (expanded) {
+              mobileMenu.classList.remove("-translate-x-full");
+              mobileMenu.classList.add("translate-x-0");
+            } else {
+              mobileMenu.classList.add("-translate-x-full");
+              mobileMenu.classList.remove("translate-x-0");
+            }
+          });
+          observer.observe(toggleBtn, { attributes: true, attributeFilter: ["aria-expanded"] });
+        }
       }
     }
-  });
+
+    // --- Init ---
+    document.addEventListener("livewire:load", () => {
+      flushQueue();
+      bindClickOutside();
+      enableSmoothTransitions();
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      flushQueue();
+      bindClickOutside();
+      enableSmoothTransitions();
+    });
+  })();
 </script>
