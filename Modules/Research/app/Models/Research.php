@@ -29,4 +29,9 @@ class Research extends Model
     // {
     //     // return ResearchFactory::new();
     // }
+    
+    public function getRouteKeyName()
+{
+    return 'slug';
+}
 }

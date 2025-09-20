@@ -6,264 +6,238 @@
     <title>@yield('title', 'SmartAgro')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Axios (ensures cookies/credentials can be sent) -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    <!-- Pusher + Laravel Echo -->
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.3/dist/echo.iife.js"></script>
 
     @livewireStyles
 </head>
 <body class="bg-gray-50 text-gray-800">
-  
-   <livewire:header />
+
+   @include('layouts.header')
 
   <main class="container mx-auto px-6 py-8">
       @yield('content')
   </main>
-  
-  <livewire:footer />
 
-  <!-- Toast container -->
+   <livewire:footer />
+
   <div id="toast-container" class="fixed bottom-5 right-5 space-y-3 z-50"></div>
 
  <script>
-/**
- * Laravel Echo Configuration - ADD THIS FIRST
- */
-// Configure axios defaults
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    /**
+     * Laravel Echo Configuration
+     */
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-// Initialize Laravel Echo
-window.Echo = new Echo({
-    broadcaster: 'pusher',
-    key: '{{ config("broadcasting.connections.pusher.key") }}',
-    cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
-    forceTLS: location.protocol === 'https:',
-    encrypted: true,
-    auth: {
-        headers: {
-            Accept: 'application/json',
+    window.Echo = new Echo({
+        broadcaster: 'pusher',
+        key: '{{ config("broadcasting.connections.pusher.key") }}',
+        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
+        forceTLS: location.protocol === 'https:',
+        encrypted: true,
+        auth: {
+            headers: {
+                Accept: 'application/json',
+            },
         },
-    },
-    authorizer: (channel, options) => {
-        return {
-            authorize: (socketId, callback) => {
-                axios.post('/broadcasting/auth', {
-                    socket_id: socketId,
-                    channel_name: channel.name
-                })
-                .then(response => {
-                    callback(false, response.data);
-                })
-                .catch(error => {
-                    callback(true, error);
-                });
-            }
-        };
-    },
-});
-
-/**
- * Full Echo + clickable toast integration for diagnosis notifications
- */
-
-// current authenticated user id (null if guest)
-const currentUserId = @json(auth()->id());
-
-// normalize payloads from different shapes
-function normalizeIncoming(data) {
-    if (!data) return {};
-    if (data.status || data.html || data.diagnosis_id || data.message) return data;
-    if (data.data && (data.data.status || data.data.html || data.data.diagnosis_id || data.data.message)) return data.data;
-    if (data.notification && data.notification.data) return data.notification.data;
-    if (data.notification && (data.notification.status || data.notification.message)) return data.notification;
-    return {};
-}
-
-// Smooth & lightweight toast
-function showToast(message, type = 'info', url = null) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = `max-w-xs w-full bg-white shadow-md rounded-lg p-4 flex items-center justify-between space-x-3 transition-transform transition-opacity duration-300 ease-out cursor-pointer`;
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-
-    const color = type === 'error' ? 'text-red-600' : type === 'info' ? 'text-blue-600' : 'text-green-600';
-
-    toast.innerHTML = `
-        <div class="${color} text-lg mr-3">🔔</div>
-        <div class="flex-1 text-sm font-medium text-gray-900">${message}</div>
-        ${url ? '<div class="text-xs text-gray-500 ml-3 underline">Open</div>' : ''}
-    `;
-
-    toast.addEventListener('click', () => {
-        if (url) window.location.href = url;
-        else removeToast(toast);
+        authorizer: (channel, options) => {
+            return {
+                authorize: (socketId, callback) => {
+                    axios.post('/broadcasting/auth', {
+                        socket_id: socketId,
+                        channel_name: channel.name
+                    })
+                    .then(response => {
+                        callback(false, response.data);
+                    })
+                    .catch(error => {
+                        callback(true, error);
+                    });
+                }
+            };
+        },
     });
 
-    container.appendChild(toast);
+    /**
+     * Toast & Notification Logic
+     */
+    const currentUserId = @json(auth()->id());
 
-    // Trigger slide-in
-    requestAnimationFrame(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(0)';
-    });
+    function normalizeIncoming(data) {
+        if (!data) return {};
+        if (data.status || data.html || data.diagnosis_id || data.message) return data;
+        if (data.data && (data.data.status || data.data.html || data.data.diagnosis_id || data.data.message)) return data.data;
+        if (data.notification && data.notification.data) return data.notification.data;
+        if (data.notification && (data.notification.status || data.notification.message)) return data.notification;
+        return {};
+    }
 
-    // Auto remove
-    setTimeout(() => removeToast(toast), 50 * 1000);
-}
+    function showToast(message, type = 'info', url = null) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
 
-// Remove toast with smooth slide-out
-function removeToast(toast) {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-    toast.addEventListener('transitionend', () => toast.remove(), { once: true });
-}
+        const toast = document.createElement('div');
+        toast.className = `max-w-xs w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5 transition-transform transition-opacity duration-300 ease-out`;
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
 
-// fetch full diagnosis HTML from server
-function fetchFullDiagnosisHtml(diagnosisId) {
-    if (!diagnosisId) return Promise.reject('no id');
-    return fetch(`/diagnoses/${diagnosisId}`, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-    }).then(r => {
-        if (!r.ok) throw new Error('Failed to fetch report: ' + r.status);
-        return r.json();
-    });
-}
+        const color = type === 'error' ? 'text-red-600' : type === 'info' ? 'text-blue-600' : 'text-green-600';
 
-// update #global-diagnosis
-function updateDiagnosisUIFromPayload(payload) {
-    const status = payload.status || '';
-    const html = payload.html || '';
-    const diagnosisId = payload.diagnosis_id || payload.id || payload.diagnosisId || null;
+        // CHANGE: Added a close button and improved toast structure
+        toast.innerHTML = `
+            <div class="p-4 flex items-start w-full">
+                <div class="flex-shrink-0 pt-0.5">
+                    <div class="${color} text-xl">🔔</div>
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium text-gray-900">${message}</p>
+                    ${url ? '<p class="mt-1 text-sm text-gray-500 underline cursor-pointer">View Details</p>' : ''}
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button class="inline-flex text-gray-400 hover:text-gray-500 focus:outline-none" data-close-toast>
+                        <span class="sr-only">Close</span>
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
 
-    const target = document.querySelector('#global-diagnosis');
-    if (!target) return;
-
-    if (status === 'processing') {
-        target.textContent = '⏳ Processing...';
-    } else if (status === 'failed') {
-        target.textContent = '❌ ' + (html || 'Failed');
-    } else if (status === 'completed') {
-        if (diagnosisId) {
-            fetchFullDiagnosisHtml(diagnosisId)
-                .then(data => {
-                    target.innerHTML = data.html || data.excerpt || 'Diagnosis ready';
-                    const pb = document.querySelector('#progress-bar');
-                    const pt = document.querySelector('#progress-text');
-                    if (pb) pb.style.width = '100%';
-                    if (pt) pt.textContent = 'All done';
-                })
-                .catch(err => {
-                    console.error(err);
-                    target.textContent = html || 'Diagnosis ready (failed to load full report)';
-                });
-        } else if (html) {
-            target.innerHTML = html;
-            const pb = document.querySelector('#progress-bar');
-            const pt = document.querySelector('#progress-text');
-            if (pb) pb.style.width = '100%';
-            if (pt) pt.textContent = 'All done';
-        } else {
-            target.textContent = 'Diagnosis ready';
+        // Event listener for the main body (if URL exists)
+        if (url) {
+            toast.querySelector('.flex-1').addEventListener('click', () => {
+                window.location.href = url;
+            });
         }
-    } else {
-        target.textContent = html || 'Waiting for result...';
-    }
-}
+        
+        // Event listener for the close button
+        toast.querySelector('[data-close-toast]').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent the main click event from firing
+            removeToast(toast);
+        });
+        
+        container.appendChild(toast);
 
-// subscribe to diagnosis.{userId} channel
-function subscribeDiagnosisChannel(userId) {
-    if (!userId || !window.Echo) {
-        console.warn('Cannot subscribe to diagnosis channel: missing userId or Echo');
-        return;
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
+
+        // CHANGE: Reduced auto-remove time to 8 seconds
+        setTimeout(() => removeToast(toast), 50 * 1000);
     }
-    try {
+
+    function removeToast(toast) {
+        if (!toast) return;
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+    }
+
+    function fetchFullDiagnosisHtml(diagnosisId) {
+        if (!diagnosisId) return Promise.reject('No diagnosis ID provided');
+        return fetch(`/diagnoses/${diagnosisId}`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+        }).then(r => {
+            if (!r.ok) throw new Error('Failed to fetch report: ' + r.status);
+            return r.json();
+        });
+    }
+
+    function updateDiagnosisUIFromPayload(payload) {
+        const { status, html, diagnosis_id, id } = payload;
+        const diagnosisId = diagnosis_id || id;
+        const target = document.querySelector('#global-diagnosis');
+        if (!target) return;
+
+        if (status === 'processing') {
+            target.innerHTML = '⏳ Processing...';
+        } else if (status === 'failed') {
+            target.innerHTML = `❌ ${html || 'Failed'}`;
+        } else if (status === 'completed') {
+            if (diagnosisId) {
+                fetchFullDiagnosisHtml(diagnosisId)
+                    .then(data => {
+                        target.innerHTML = data.html || data.excerpt || 'Diagnosis ready';
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        target.textContent = html || 'Diagnosis ready (failed to load full report)';
+                    });
+            } else {
+                target.innerHTML = html || 'Diagnosis ready';
+            }
+        } else {
+            target.innerHTML = html || 'Waiting for result...';
+        }
+    }
+
+    // Channel subscription functions remain the same
+    function subscribeDiagnosisChannel(userId) {
         window.Echo.private(`diagnosis.${userId}`)
             .listen('DiagnosisUpdated', (e) => {
+                console.log('DiagnosisUpdated event:', e);
                 const payload = normalizeIncoming(e);
                 updateDiagnosisUIFromPayload(payload);
-
-                const diagId = payload.diagnosis_id || payload.id || null;
-                const msg = payload.message || (payload.status === 'completed' ? 'Diagnosis ready' : (payload.status || 'Update'));
-                showToast(msg, payload.status === 'failed' ? 'error' : 'success');
+                const msg = payload.message || (payload.status === 'completed' ? 'Diagnosis complete!' : 'Diagnosis updated.');
+                const url = payload.url || (payload.status === 'completed' ? `/diagnoses/${payload.diagnosis_id || payload.id}` : null);
+                showToast(msg, payload.status === 'failed' ? 'error' : 'success', url);
             })
-            .error(err => console.error('Diagnosis channel error', err));
-    } catch (err) {
-        console.error('Could not subscribe to diagnosis channel', err);
+            .error(err => console.error('Diagnosis channel error:', err));
     }
-}
 
-// subscribe to App.Models.User.{id} notifications
-function subscribeUserNotificationChannel(userId) {
-    if (!userId || !window.Echo) {
-        console.warn('Cannot subscribe to user notification channel: missing userId or Echo');
-        return;
-    }
-    try {
+    function subscribeUserNotificationChannel(userId) {
         window.Echo.private(`App.Models.User.${userId}`)
             .notification((notification) => {
                 console.log('User notification received:', notification);
                 const payload = normalizeIncoming(notification);
-                updateDiagnosisUIFromPayload(payload);
-                const diagId = payload.diagnosis_id || payload.id || null;
-                const url = payload.url ? payload.url : null;
-                const msg = payload.message || payload.status || 'Notification';
-                showToast(msg, 'info', url);
+                const msg = payload.message || 'You have a new notification.';
+                showToast(msg, 'info', payload.url);
             })
-            .error(err => console.error('User notification channel error', err));
-    } catch (err) {
-        console.error('Could not subscribe to user notification channel', err);
+            .error(err => console.error('User notification channel error:', err));
     }
-}
 
-// subscribe to chat channel
-function subscribeChatChannel() {
-    if (!window.Echo) {
-        console.warn('Cannot subscribe to chat channel: Echo not initialized');
-        return;
-    }
-    try {
+    function subscribeChatChannel() {
         window.Echo.private('chat')
             .listen('MessageSent', (e) => {
                 console.log('MessageSent event received:', e);
-                const text = e.message || e.text || JSON.stringify(e);
+                const text = e.message || e.text || 'New message in chat';
                 showToast(text, 'info');
             })
-            .error(err => console.error('Chat channel error', err));
-    } catch (err) {
-        console.error('Could not subscribe to chat channel', err);
+            .error(err => console.error('Chat channel error:', err));
     }
-}
 
-// Wait for Echo to be ready before subscribing
-document.addEventListener('DOMContentLoaded', function() {
-    // Small delay to ensure Echo is fully initialized
-    setTimeout(() => {
-        if (window.Echo && typeof window.Echo.private === 'function') {
-            console.log('Echo initialized successfully');
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!window.Echo) {
+            console.error('Echo failed to initialize.');
+            return;
+        }
+
+        // CHANGE: Removed setTimeout and used the 'connected' event for robust subscription
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('Successfully connected to Pusher! Subscribing to channels...');
             
             if (currentUserId) {
                 subscribeDiagnosisChannel(currentUserId);
                 subscribeUserNotificationChannel(currentUserId);
             }
             subscribeChatChannel();
-        } else {
-            console.error('Echo failed to initialize properly');
-            console.log('Echo object:', window.Echo);
-        }
-    }, 100);
-});
+        });
+
+        window.Echo.connector.pusher.connection.bind('error', (err) => {
+            console.error('Pusher connection error:', err);
+        });
+    });
 </script>
+
 
   @livewireScripts
   @stack('scripts')

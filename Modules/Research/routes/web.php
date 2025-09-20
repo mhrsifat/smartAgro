@@ -7,13 +7,12 @@ use Modules\Research\Http\Controllers\AdminResearchController;
 
 // Public/Authenticated Users (view only)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('researches', [ResearchController::class, 'index'])->name('research.index');
-    Route::get('researches/{research}', [ResearchController::class, 'show'])->name('research.show');
+    Route::get('research', [ResearchController::class, 'index'])->name('research.index');
+    Route::get('research/{research}', [ResearchController::class, 'show'])->name('research.show');
 });
 
-// Admin (full CRUD)
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
-    Route::resource('researches', AdminResearchController::class, [
-        'as' => 'admin'
-    ]);
+
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+    Route::resource('researches', AdminResearchController::class);
 });

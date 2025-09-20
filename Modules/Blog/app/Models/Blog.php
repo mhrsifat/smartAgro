@@ -26,4 +26,9 @@ class Blog extends Model
     // {
     //     // return BlogFactory::new();
     // }
+    
+    public function getRouteKeyName()
+{
+    return 'slug';
+}
 }

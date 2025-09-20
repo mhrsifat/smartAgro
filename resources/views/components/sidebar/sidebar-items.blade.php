@@ -12,11 +12,11 @@
   <x-sidebar.dropdown title="Research" icon="icons.research">
     <x-sidebar.dropdown-link
       title="Create new Research"
-      url="{{ route('admin.create.account') }}"
+      url="{{ route('admin.researches.create') }}"
       />
     <x-sidebar.dropdown-link
       title="View Research"
-      url="{{ route('admin.forgot.password') }}"
+      url="{{ route('admin.researches.index') }}"
       />
     <x-sidebar.dropdown-link
       title="View Publish Request"
