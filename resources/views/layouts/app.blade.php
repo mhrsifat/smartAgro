@@ -14,7 +14,6 @@
 
         <!-- Styles -->
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
-        <!-- @livewireStyles -->
 
         <!-- Scripts -->
         <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer>
@@ -22,12 +21,12 @@
         <script src="{{ asset('assets/js/init-alpine.js') }}"></script>
         @stack('scripts')
     </head>
-
+<body class="font-sans antialiased">
     <div
       class="flex h-screen bg-gray-50 dark:bg-gray-900"
       :class="{ 'overflow-hidden': isSideMenuOpen}"
     >
-        <body class="font-sans antialiased">
+        
             <!-- Sidebars -->
             <x-sidebar.desktop />
             <x-sidebar.mobile />
@@ -49,6 +48,7 @@
             </x-layout.main>
             <!-- /Main Layout -->
 
-        </body>
+       
     </div>
+     </body>
 </html>
