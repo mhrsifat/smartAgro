@@ -64,10 +64,12 @@ class DiagnosisUpdated implements ShouldBroadcast
      */
     public function broadcastWith()
     {
+        $url = $this->diagnosisId ? route('diagnosis.result.show', ['id' => $this->diagnosisId]) : null;
+        $messagewithUrl = $this->message ? $this->message . ($url ? " <a href=\"{$url}\">View Result</a>" : '') : $this->getDefaultMessage();
         return [
             'status' => $this->status,
             'diagnosis_id' => $this->diagnosisId,
-            'message' => $this->message ?? $this->getDefaultMessage(),
+            'message' => $messagewithUrl,
             'user_key' => $this->userKey,
         ];
     }

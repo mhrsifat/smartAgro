@@ -66,5 +66,7 @@ Route::get('/user/email/cancel-change', [ProfileController::class, 'cancelEmailC
 
 
 Route::get('/diagnoses/{id}', [DiseaseController::class, 'show'])->name('diagnosis.result.show');
+Route::get('/diagnosis/result/{id}', [DiseaseController::class, 'resultShow'])->name('diagnosis.result.show');
+
 
 

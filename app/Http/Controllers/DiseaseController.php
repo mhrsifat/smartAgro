@@ -22,7 +22,7 @@ class DiseaseController extends Controller
         $diagnosis = Diagnosis::findOrFail($id);
 
         // authorize: if record has user_id, ensure current user owns it
-        if ($diagnosis->user_id && $request->user()->id !== $diagnosis->user_id) {
+        if ($diagnosis->user_id && $request->user()->id !== (int) $diagnosis->user_id) {
             abort(403);
         }
 
@@ -36,7 +36,34 @@ class DiseaseController extends Controller
             'status' => $diagnosis->status,
             'excerpt' => $diagnosis->excerpt,
             'html' => $html,
+            'url' => $diagnosis->file_path ? config('app.url') . '/storage/' . $diagnosis->file_path : null,
             'file_path' => $diagnosis->file_path ? asset('storage/' . $diagnosis->file_path) : null,
+        ]);
+    }
+
+    public function resultShow(Request $request, $id)
+    {
+        $diagnosis = Diagnosis::findOrFail($id);
+
+        // authorize: if record has user_id, ensure current user owns it
+        if ($diagnosis->user_id) {
+            if (!auth()->check()) {
+                abort(403, 'Please login to view this diagnosis');
+            }
+
+            if (auth()->id() !== (int) $diagnosis->user_id) {
+                abort(403, 'You can only view your own diagnoses');
+            }
+        }
+
+        $html = null;
+        if ($diagnosis->file_path && Storage::disk('public')->exists($diagnosis->file_path)) {
+            $html = Storage::disk('public')->get($diagnosis->file_path);
+        }
+
+        return view('diagnosisResult', [
+            'diagnosis' => $diagnosis,
+            'html' => $html,
         ]);
     }
 

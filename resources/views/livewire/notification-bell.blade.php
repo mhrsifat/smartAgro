@@ -21,12 +21,19 @@
             </div>
             <ul class="max-h-60 overflow-y-auto divide-y">
                 @forelse($notifications as $note)
-                    <li class="px-3 py-2 hover:bg-gray-50 text-sm text-gray-700">
-                        {{ $note->data['message'] }}
-                    </li>
-                @empty
-                    <li class="px-3 py-2 text-gray-500 text-sm">No notifications</li>
-                @endforelse
+    <li class="px-3 py-2 hover:bg-gray-50 text-sm text-gray-700">
+        @if(isset($note->data['url']) && $note->data['url'])
+            <a href="{{ $note->data['url'] }}" class="block hover:text-blue-600">
+                {{ strip_tags($note->data['message']) }}
+                <span class="text-xs text-blue-500 ml-2">→ View</span>
+            </a>
+        @else
+            {{ strip_tags($note->data['message']) }}
+        @endif
+    </li>
+@empty
+    <li class="px-3 py-2 text-gray-500 text-sm">No notifications</li>
+@endforelse
             </ul>
         </div>
     @endif

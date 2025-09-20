@@ -48,11 +48,13 @@ class DiagnosisReady extends Notification implements ShouldQueue
      */
     public function toArray($notifiable)
     {
+        $url = $this->diagnosisId ? route('diagnosis.result.show', ['id' => $this->diagnosisId]) : null;
+        $messagewithUrl = $this->message ? $this->message . ($url ? " <a href=\"{$url}\">View Result</a>" : '') : ($this->status === 'completed' ? 'Diagnosis ready' . ($url ? " <a href=\"{$url}\">View Result</a>" : '') : ucfirst($this->status));
         return [
             'status' => $this->status,
-            'message' => $this->message,
+            'message' => $messagewithUrl,
             'diagnosis_id' => $this->diagnosisId,
-            'url' => $this->diagnosisId ? route('diagnosis.result.show', ['id' => $this->diagnosisId]) : null,
+            'url' => $url,
         ];
     }
 
@@ -64,11 +66,13 @@ class DiagnosisReady extends Notification implements ShouldQueue
      */
     public function toBroadcast($notifiable)
     {
-        return new BroadcastMessage([
+        $url = $this->diagnosisId ? route('diagnosis.result.show', ['id' => $this->diagnosisId]) : null;
+        $messagewithUrl = $this->message ? $this->message . ($url ? " <a href=\"{$url}\">View Result</a>" : '') : ($this->status === 'completed' ? 'Diagnosis ready' . ($url ? " <a href=\"{$url}\">View Result</a>" : '') : ucfirst($this->status));
+        return [
             'status' => $this->status,
-            'message' => $this->message,
+            'message' => $messagewithUrl,
             'diagnosis_id' => $this->diagnosisId,
-            'url' => $this->diagnosisId ? route('diagnosis.result.show', ['id' => $this->diagnosisId]) : null,
-        ]);
+            'url' => $url,
+        ];
     }
 }

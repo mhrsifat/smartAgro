@@ -118,7 +118,7 @@ function showToast(message, type = 'info', url = null) {
     });
 
     // Auto remove
-    setTimeout(() => removeToast(toast), 6000);
+    setTimeout(() => removeToast(toast), 50 * 1000);
 }
 
 // Remove toast with smooth slide-out
@@ -190,14 +190,12 @@ function subscribeDiagnosisChannel(userId) {
     try {
         window.Echo.private(`diagnosis.${userId}`)
             .listen('DiagnosisUpdated', (e) => {
-                console.log('DiagnosisUpdated event received:', e);
                 const payload = normalizeIncoming(e);
                 updateDiagnosisUIFromPayload(payload);
 
                 const diagId = payload.diagnosis_id || payload.id || null;
-                const url = diagId ? `/diagnosis/${diagId}` : (payload.url || null);
                 const msg = payload.message || (payload.status === 'completed' ? 'Diagnosis ready' : (payload.status || 'Update'));
-                showToast(msg, payload.status === 'failed' ? 'error' : 'success', url);
+                showToast(msg, payload.status === 'failed' ? 'error' : 'success');
             })
             .error(err => console.error('Diagnosis channel error', err));
     } catch (err) {
@@ -218,7 +216,7 @@ function subscribeUserNotificationChannel(userId) {
                 const payload = normalizeIncoming(notification);
                 updateDiagnosisUIFromPayload(payload);
                 const diagId = payload.diagnosis_id || payload.id || null;
-                const url = payload.url || (diagId ? `/diagnosis/${diagId}` : null);
+                const url = payload.url ? payload.url : null;
                 const msg = payload.message || payload.status || 'Notification';
                 showToast(msg, 'info', url);
             })
