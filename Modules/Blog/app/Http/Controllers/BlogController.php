@@ -12,13 +12,13 @@ class BlogController extends Controller
      */
     public function index()
     {
-        return view('blog::index');
+        return view('blog::blogs');
     }
 
     
     public function show(Blog $blog)
 {
-    return view('blog::show', compact('blog'));
+    return view('blog::blogs-single', compact('blog'));
 }
     
 }

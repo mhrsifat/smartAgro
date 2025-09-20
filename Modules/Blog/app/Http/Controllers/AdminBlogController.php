@@ -18,6 +18,13 @@ class AdminBlogController extends Controller
     {
         return view('blog::create');
     }
+    
+    
+public function show($id)
+{
+    $blog = \Modules\Blog\Models\Blog::findOrFail($id);
+    return view('blog::show', compact('blog'));
+}
 
     public function store(Request $request)
     {
