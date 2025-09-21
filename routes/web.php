@@ -11,6 +11,7 @@ use App\Http\Controllers\Fortify\ProfileController;
 use App\Http\Controllers\Fortify\PasswordController;
 use App\Http\Controllers\Fortify\TwoFactorController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/test', function () {
     return view('test');
@@ -72,6 +73,12 @@ Route::get('/diagnosis/result/{id}', [DiseaseController::class, 'resultShow'])->
 
 
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications/unread', [NotificationController::class, 'unread']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::get('/notifications/all', [NotificationController::class, 'all'])->name('notifications.all');
+});
 
 
 
@@ -79,22 +86,22 @@ Route::get('/diagnosis/result/{id}', [DiseaseController::class, 'resultShow'])->
 
 
 
-Route::get('/notifications/unread', function () {
-    $user = Auth::user(); // session user
+// Route::get('/notifications/unread', function () {
+//     $user = Auth::user(); // session user
 
-    if (!$user) {
-        return response()->json([]); // empty if not logged in
-    }
+//     if (!$user) {
+//         return response()->json([]); // empty if not logged in
+//     }
 
-    return $user->notifications()
-        ->whereNull('read_at')
-        ->take(10)
-        ->get()
-        ->map(function ($note) {
-            return [
-                'id' => $note->id,
-                'message' => strip_tags($note->data['message']),
-                'url' => $note->data['url'] ?? null,
-            ];
-        });
-})->middleware('auth');
+//     return $user->notifications()
+//         ->whereNull('read_at')
+//         ->take(10)
+//         ->get()
+//         ->map(function ($note) {
+//             return [
+//                 'id' => $note->id,
+//                 'message' => strip_tags($note->data['message']),
+//                 'url' => $note->data['url'] ?? null,
+//             ];
+//         });
+// })->middleware('auth');
