@@ -169,7 +169,7 @@ End the report with a one-line actionable next step: e.g., **"Next step:** conta
             Cache::put($cacheKey . '_file', $filename, now()->addHours(1));
 
             
-            // event(new DiagnosisUpdated('completed', $this->userKey, $diagnosis->id, 'Diagnosis completed successfully!'));
+            event(new DiagnosisUpdated('completed', $this->userKey, $diagnosis->id, 'Diagnosis completed successfully!'));
 
             // Step 7: Notify user if they have an ID
             if ($diagnosis->user_id) {

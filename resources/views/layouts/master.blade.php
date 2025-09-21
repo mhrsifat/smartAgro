@@ -7,9 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.3/dist/echo.iife.js"></script>
 
@@ -69,6 +67,7 @@
     const currentUserId = @json(auth()->id());
 
     function normalizeIncoming(data) {
+        console.log('Normalizing data:', data); // DEBUG
         if (!data) return {};
         if (data.status || data.html || data.diagnosis_id || data.message) return data;
         if (data.data && (data.data.status || data.data.html || data.data.diagnosis_id || data.data.message)) return data.data;
@@ -88,14 +87,16 @@
 
         const color = type === 'error' ? 'text-red-600' : type === 'info' ? 'text-blue-600' : 'text-green-600';
 
-        // CHANGE: Added a close button and improved toast structure
+        // Clean message HTML for display
+        const cleanMessage = message.replace(/<[^>]*>/g, '');
+
         toast.innerHTML = `
             <div class="p-4 flex items-start w-full">
                 <div class="flex-shrink-0 pt-0.5">
                     <div class="${color} text-xl">🔔</div>
                 </div>
                 <div class="ml-3 flex-1">
-                    <p class="text-sm font-medium text-gray-900">${message}</p>
+                    <p class="text-sm font-medium text-gray-900">${cleanMessage}</p>
                     ${url ? '<p class="mt-1 text-sm text-gray-500 underline cursor-pointer">View Details</p>' : ''}
                 </div>
                 <div class="ml-4 flex-shrink-0 flex">
@@ -118,7 +119,7 @@
         
         // Event listener for the close button
         toast.querySelector('[data-close-toast]').addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent the main click event from firing
+            e.stopPropagation();
             removeToast(toast);
         });
         
@@ -129,8 +130,7 @@
             toast.style.transform = 'translateX(0)';
         });
 
-        // CHANGE: Reduced auto-remove time to 8 seconds
-        setTimeout(() => removeToast(toast), 50 * 1000);
+        setTimeout(() => removeToast(toast), 8000);
     }
 
     function removeToast(toast) {
@@ -141,6 +141,7 @@
     }
 
     function fetchFullDiagnosisHtml(diagnosisId) {
+        console.log(`Fetching diagnosis HTML for ID: ${diagnosisId}`); // DEBUG
         if (!diagnosisId) return Promise.reject('No diagnosis ID provided');
         return fetch(`/diagnoses/${diagnosisId}`, {
             credentials: 'include',
@@ -152,38 +153,48 @@
     }
 
     function updateDiagnosisUIFromPayload(payload) {
+        console.log('Updating diagnosis UI with payload:', payload); // DEBUG
         const { status, html, diagnosis_id, id } = payload;
         const diagnosisId = diagnosis_id || id;
         const target = document.querySelector('#global-diagnosis');
-        if (!target) return;
+        
+        if (!target) {
+            console.log('Target element #global-diagnosis not found'); // DEBUG
+            return;
+        }
 
         if (status === 'processing') {
-            target.innerHTML = '⏳ Processing...';
+            target.innerHTML = '<div class="text-blue-600">⏳ AI is analyzing your images...</div>';
         } else if (status === 'failed') {
-            target.innerHTML = `❌ ${html || 'Failed'}`;
+            target.innerHTML = `<div class="text-red-600">❌ ${html || 'Analysis failed'}</div>`;
         } else if (status === 'completed') {
             if (diagnosisId) {
+                console.log(`Fetching full diagnosis for completed status, ID: ${diagnosisId}`); // DEBUG
+                target.innerHTML = '<div class="text-blue-600">📋 Loading detailed results...</div>';
+                
                 fetchFullDiagnosisHtml(diagnosisId)
                     .then(data => {
-                        target.innerHTML = data.html || data.excerpt || 'Diagnosis ready';
+                        console.log('Full diagnosis data received:', data); // DEBUG
+                        target.innerHTML = data.html || data.excerpt || '<div class="text-green-600">✅ Diagnosis completed successfully!</div>';
                     })
                     .catch(err => {
-                        console.error(err);
-                        target.textContent = html || 'Diagnosis ready (failed to load full report)';
+                        console.error('Failed to fetch full diagnosis:', err);
+                        target.innerHTML = html || '<div class="text-yellow-600">⚠️ Diagnosis completed but failed to load details.</div>';
                     });
             } else {
-                target.innerHTML = html || 'Diagnosis ready';
+                target.innerHTML = html || '<div class="text-green-600">✅ Analysis completed!</div>';
             }
         } else {
-            target.innerHTML = html || 'Waiting for result...';
+            target.innerHTML = html || '<div class="text-gray-500">⏳ Waiting for analysis results...</div>';
         }
     }
 
-    // Channel subscription functions remain the same
+    // Channel subscription functions
     function subscribeDiagnosisChannel(userId) {
+        console.log(`Subscribing to diagnosis channel for user ${userId}`); // DEBUG
         window.Echo.private(`diagnosis.${userId}`)
             .listen('DiagnosisUpdated', (e) => {
-                console.log('DiagnosisUpdated event:', e);
+                console.log('DiagnosisUpdated event received:', e);
                 const payload = normalizeIncoming(e);
                 updateDiagnosisUIFromPayload(payload);
                 const msg = payload.message || (payload.status === 'completed' ? 'Diagnosis complete!' : 'Diagnosis updated.');
@@ -194,17 +205,29 @@
     }
 
     function subscribeUserNotificationChannel(userId) {
+        console.log(`Subscribing to user notification channel for user ${userId}`); // DEBUG
         window.Echo.private(`App.Models.User.${userId}`)
             .notification((notification) => {
                 console.log('User notification received:', notification);
+                
+                // FIXED: Also update diagnosis UI from user notifications
                 const payload = normalizeIncoming(notification);
+                
+                // Check if this is a diagnosis-related notification
+                if (payload.diagnosis_id && payload.status) {
+                    console.log('This is a diagnosis notification, updating UI'); // DEBUG
+                    updateDiagnosisUIFromPayload(payload);
+                }
+                
                 const msg = payload.message || 'You have a new notification.';
-                showToast(msg, 'info', payload.url);
+                const type = payload.status === 'completed' ? 'success' : (payload.status === 'failed' ? 'error' : 'info');
+                showToast(msg, type, payload.url);
             })
             .error(err => console.error('User notification channel error:', err));
     }
 
     function subscribeChatChannel() {
+        console.log('Subscribing to chat channel'); // DEBUG
         window.Echo.private('chat')
             .listen('MessageSent', (e) => {
                 console.log('MessageSent event received:', e);
@@ -216,28 +239,61 @@
 
     // --- Initialization ---
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing Echo...'); // DEBUG
+        
         if (!window.Echo) {
             console.error('Echo failed to initialize.');
             return;
         }
 
-        // CHANGE: Removed setTimeout and used the 'connected' event for robust subscription
+        console.log('Echo object available:', window.Echo); // DEBUG
+
         window.Echo.connector.pusher.connection.bind('connected', () => {
-            console.log('Successfully connected to Pusher! Subscribing to channels...');
+            console.log('✅ Successfully connected to Pusher! Subscribing to channels...');
             
             if (currentUserId) {
                 subscribeDiagnosisChannel(currentUserId);
                 subscribeUserNotificationChannel(currentUserId);
+            } else {
+                console.warn('⚠️ No current user ID found');
             }
             subscribeChatChannel();
         });
 
         window.Echo.connector.pusher.connection.bind('error', (err) => {
-            console.error('Pusher connection error:', err);
+            console.error('❌ Pusher connection error:', err);
         });
-    });
-</script>
 
+        // Check current connection state
+        console.log('Current Pusher connection state:', window.Echo.connector.pusher.connection.state);
+    });
+
+    // Debug helper functions
+    window.debugDiagnosis = {
+        testToast: function() {
+            showToast('Test toast message', 'success');
+        },
+        
+        checkEchoStatus: function() {
+            console.log('Echo status:', {
+                echo: !!window.Echo,
+                pusherState: window.Echo?.connector?.pusher?.connection?.state,
+                subscribedChannels: Object.keys(window.Echo?.connector?.channels || {}),
+                currentUserId: currentUserId
+            });
+        },
+        
+        simulateDiagnosis: function(diagnosisId = 6) {
+            const payload = {
+                status: 'completed',
+                diagnosis_id: diagnosisId,
+                message: 'Test diagnosis complete!'
+            };
+            updateDiagnosisUIFromPayload(payload);
+            showToast(payload.message, 'success');
+        }
+    };
+</script>
 
   @livewireScripts
   @stack('scripts')

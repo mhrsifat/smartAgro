@@ -31,7 +31,7 @@ class DiagnosisUpdated implements ShouldBroadcast
         $this->status = $status;
         $this->userKey = $userKey;
         $this->diagnosisId = $diagnosisId;
-        $this->message = $message;
+        $this->message = $message ?? ($status === 'completed' ? 'Diagnosis ready' : ucfirst($status));
     }
     
     /**
@@ -71,6 +71,7 @@ class DiagnosisUpdated implements ShouldBroadcast
             'diagnosis_id' => $this->diagnosisId,
             'message' => $messagewithUrl,
             'user_key' => $this->userKey,
+            'url' => $url,
         ];
     }
 

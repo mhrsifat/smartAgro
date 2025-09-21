@@ -50,17 +50,23 @@ function notificationBell() {
         notifications: [],
         async fetchNotifications() {
             try {
-                const res = await fetch('/api/notifications/unread');
+                const res = await fetch('/notifications/unread', {
+                    credentials: 'include'
+                });
                 if (res.ok) {
                     this.notifications = await res.json();
+                } else {
+                    console.error('Failed to fetch notifications', res.status);
                 }
             } catch (e) {
                 console.error('Error fetching notifications', e);
             }
         },
-        init() {
+        async init() {
+            await fetch('/sanctum/csrf-cookie', { credentials: 'include' });
+
             this.fetchNotifications();
-            setInterval(() => this.fetchNotifications(), 10000); // refresh every 10s
+            setInterval(() => this.fetchNotifications(), 10000);
         }
     }
 }

@@ -4,109 +4,136 @@ namespace Modules\Research\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Modules\Research\Models\Research;
+use App\Models\User;
 
 class AdminResearchController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */public function index()
-{
-    $researches = \Modules\Research\Models\Research::latest()->paginate(10);
-    return view('research::admin.index', compact('researches'));
-}
-
-public function create()
-{
-    $users = User::pluck('name', 'id');
-    return view('research::admin.create', compact('users'));
-}
-
-public function store(Request $request)
-{
-    $data = $request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'required|string',
-        'slug' => 'required|string|unique:researches,slug',
-        'image' => 'nullable|image',
-        'authors' => 'nullable|array',
-        'status' => 'required|in:draft,under_review,published',
-        'is_featured' => 'nullable|boolean',
-        'download_url' => 'nullable|url',
-        'user_id' => 'nullable|exists:users,id',
-    ]);
-
-    // handle image upload
-    if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('uploads/researches', 'public');
-        $data['image'] = 'storage/' . $path;
+    public function index()
+    {
+        $researches = Research::latest()->paginate(10);
+        return view('research::admin.index', compact('researches'));
     }
 
-    $data['authors'] = $data['authors'] ? json_encode($data['authors']) : null;
-    $data['is_featured'] = isset($data['is_featured']) ? (bool)$data['is_featured'] : false;
+    public function create()
+    {
+        $users = User::pluck('name', 'id');
+        return view('research::admin.create', compact('users'));
+    }
 
-    \Modules\Research\Models\Research::create($data);
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'title'        => 'required|string|max:255',
+            'description'  => 'required|string',
+            'slug'         => 'required|string|unique:researches,slug',
+            'image'        => 'nullable|image',
+            'authors'      => 'nullable|string',
+            'status'       => 'required|in:draft,under_review,published',
+            'is_featured'  => 'nullable|boolean',
+            'download_url' => 'nullable|url',
+            'paper'        => 'nullable|file|mimes:pdf,doc,docx',
+            'user_id'      => 'nullable|exists:users,id',
+        ]);
 
-    return redirect()->route('admin.researches.index')->with('success', 'Research created successfully.');
-}
-    
+        // Featured image
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('uploads/researches/images', 'public');
+            $data['image'] = 'storage/' . $path;
+        } else {
+            $data['image'] = 'storage/uploads/researches/images/default.png'; // fallback
+        }
 
-public function show($id)
-{
-    $research = \Modules\Research\Models\Research::findOrFail($id);
-    return view('research::admin.show', compact('research'));
-}
+        // Research paper
+        if ($request->hasFile('paper')) {
+            $path = $request->file('paper')->store('uploads/researches/papers', 'public');
+            $data['paper'] = 'storage/' . $path;
+        }
 
+        $data['is_featured'] = $request->boolean('is_featured');
 
-public function edit($id)
-{
-    $research = \Modules\Research\Models\Research::findOrFail($id);
-    $users = User::pluck('name', 'id');
-    return view('research::admin.edit', compact('research', 'users'));
-}
+        Research::create($data);
 
-public function update(Request $request, $id)
-{
-    $research = \Modules\Research\Models\Research::findOrFail($id);
+        return redirect()->route('admin.researches.index')
+            ->with('success', 'Research created successfully.');
+    }
 
-    $data = $request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'required|string',
-        'slug' => "required|string|unique:researches,slug,{$id}",
-        'image' => 'nullable|image',
-        'authors' => 'nullable|array',
-        'status' => 'required|in:draft,under_review,published',
-        'is_featured' => 'nullable|boolean',
-        'download_url' => 'nullable|url',
-        'user_id' => 'nullable|exists:users,id',
-    ]);
+    public function show($id)
+    {
+        $research = Research::findOrFail($id);
+        return view('research::admin.show', compact('research'));
+    }
 
-    if ($request->hasFile('image')) {
-        // optional: delete old image if you stored path in storage
+    public function edit($id)
+    {
+        $research = Research::findOrFail($id);
+        $users = User::pluck('name', 'id');
+        return view('research::admin.edit', compact('research', 'users'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $research = Research::findOrFail($id);
+
+        $data = $request->validate([
+            'title'        => 'required|string|max:255',
+            'description'  => 'required|string',
+            'slug'         => "required|string|unique:researches,slug,{$id}",
+            'image'        => 'nullable|image',
+            'authors'      => 'nullable|string',
+            'status'       => 'required|in:draft,under_review,published',
+            'is_featured'  => 'nullable|boolean',
+            'download_url' => 'nullable|url',
+            'paper'        => 'nullable|file|mimes:pdf,doc,docx',
+            'user_id'      => 'nullable|exists:users,id',
+        ]);
+
+        // Replace image
+        if ($request->hasFile('image')) {
+            if ($research->image && str_contains($research->image, 'storage/')) {
+                $oldPath = str_replace('storage/', '', $research->image);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('image')->store('uploads/researches/images', 'public');
+            $data['image'] = 'storage/' . $path;
+        }
+
+        // Replace paper
+        if ($request->hasFile('paper')) {
+            if ($research->paper && str_contains($research->paper, 'storage/')) {
+                $oldPath = str_replace('storage/', '', $research->paper);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('paper')->store('uploads/researches/papers', 'public');
+            $data['paper'] = 'storage/' . $path;
+        }
+
+        $data['is_featured'] = $request->boolean('is_featured');
+
+        $research->update($data);
+
+        return redirect()->route('admin.researches.index')
+            ->with('success', 'Research updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $research = Research::findOrFail($id);
+
         if ($research->image && str_contains($research->image, 'storage/')) {
             $oldPath = str_replace('storage/', '', $research->image);
             Storage::disk('public')->delete($oldPath);
         }
-        $path = $request->file('image')->store('uploads/researches', 'public');
-        $data['image'] = 'storage/' . $path;
+
+        if ($research->paper && str_contains($research->paper, 'storage/')) {
+            $oldPath = str_replace('storage/', '', $research->paper);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $research->delete();
+
+        return redirect()->route('admin.researches.index')
+            ->with('success', 'Research deleted successfully.');
     }
-
-    $data['authors'] = $data['authors'] ? json_encode($data['authors']) : null;
-    $data['is_featured'] = isset($data['is_featured']) ? (bool)$data['is_featured'] : false;
-
-    $research->update($data);
-
-    return redirect()->route('admin.researches.index')->with('success', 'Research updated successfully.');
 }
-
-public function destroy($id)
-{
-    $research = \Modules\Research\Models\Research::findOrFail($id);
-    $research->delete();
-
-    return redirect()->route('admin.researches.index')->with('success', 'Research deleted successfully.');
-}
-}
-
