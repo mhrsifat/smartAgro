@@ -3,10 +3,10 @@
 namespace Modules\Research\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Modules\Research\Models\Research;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class AdminResearchController extends Controller
 {
@@ -32,7 +32,6 @@ class AdminResearchController extends Controller
             'authors'      => 'nullable|string',
             'status'       => 'required|in:draft,under_review,published',
             'is_featured'  => 'nullable|boolean',
-            'download_url' => 'nullable|url',
             'paper'        => 'nullable|file|mimes:pdf,doc,docx',
             'user_id'      => 'nullable|exists:users,id',
         ]);
@@ -42,7 +41,7 @@ class AdminResearchController extends Controller
             $path = $request->file('image')->store('uploads/researches/images', 'public');
             $data['image'] = 'storage/' . $path;
         } else {
-            $data['image'] = 'storage/uploads/researches/images/default.png'; // fallback
+            $data['image'] = 'storage/uploads/researches/images/default.jpg';
         }
 
         // Research paper
@@ -59,27 +58,23 @@ class AdminResearchController extends Controller
             ->with('success', 'Research created successfully.');
     }
 
-    public function show($id)
+    public function show(Research $research)
     {
-        $research = Research::findOrFail($id);
         return view('research::admin.show', compact('research'));
     }
 
-    public function edit($id)
+    public function edit(Research $research)
     {
-        $research = Research::findOrFail($id);
         $users = User::pluck('name', 'id');
         return view('research::admin.edit', compact('research', 'users'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Research $research)
     {
-        $research = Research::findOrFail($id);
-
         $data = $request->validate([
             'title'        => 'required|string|max:255',
             'description'  => 'required|string',
-            'slug'         => "required|string|unique:researches,slug,{$id}",
+            'slug'         => "required|string|unique:researches,slug,{$research->id}",
             'image'        => 'nullable|image',
             'authors'      => 'nullable|string',
             'status'       => 'required|in:draft,under_review,published',
@@ -117,10 +112,8 @@ class AdminResearchController extends Controller
             ->with('success', 'Research updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy(Research $research)
     {
-        $research = Research::findOrFail($id);
-
         if ($research->image && str_contains($research->image, 'storage/')) {
             $oldPath = str_replace('storage/', '', $research->image);
             Storage::disk('public')->delete($oldPath);

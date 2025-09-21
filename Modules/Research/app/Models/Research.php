@@ -10,6 +10,8 @@ class Research extends Model
 {
     use HasFactory;
 
+     protected $table = 'researches';
+
     /**
      * The attributes that are mass assignable.
      */

@@ -11,9 +11,6 @@
 <x-forms.input label="Authors" name="authors" type="text"
     value="{{ old('authors', $research->authors ?? '') }}" />
 
-<x-forms.input label="Download URL" name="download_url" type="url"
-    value="{{ old('download_url', $research->download_url ?? '') }}" />
-
 <x-forms.select label="Status" name="status"
     :options="['draft' => 'Draft', 'under_review' => 'Under Review', 'published' => 'Published']"
     :selected="old('status', $research->status ?? 'draft')" />
