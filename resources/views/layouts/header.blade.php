@@ -64,7 +64,35 @@
         </div>
 
         <!-- Login -->
-        <a href="/login" class="px-3 py-1 border rounded text-sm font-semibold">Login</a>
+        @auth
+  <div class="relative" x-data="{ open: false }">
+    <button @click="open = !open" class="flex items-center gap-2">
+      @if(Auth::user()->profile_photo_path)
+        <img src="{{ Auth::user()->profile_photo_path }}"
+             alt="{{ Auth::user()->name }}"
+             class="h-8 w-8 rounded-full object-cover" />
+      @else
+        <x-heroicon-o-user-circle class="h-8 w-8 text-gray-600" />
+      @endif
+      <x-heroicon-o-chevron-down class="h-4 w-4" />
+    </button>
+    <div x-show="open" @click.away="open = false"
+         x-transition
+         class="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg py-1">
+      <a href="{{ route('dashboard') }}" class="block px-3 py-2 text-sm hover:bg-gray-50">
+        Profile
+      </a>
+      <form action="{{ route('logout') }}" method="POST">
+        @csrf
+        <button type="submit" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">
+          Logout
+        </button>
+      </form>
+    </div>
+  </div>
+@else
+  <a href="/login" class="px-3 py-1 border rounded text-sm font-semibold">Login</a>
+@endauth
       </div>
 
       <!-- Mobile icons -->
@@ -191,13 +219,43 @@
             @endforeach
           </ul>
         </li>
+@auth
+  <li class="flex items-center gap-2 px-3 py-2">
+    @if(Auth::user()->profile_photo_path)
+      <img src="{{ Auth::user()->profile_photo_path }}"
+           alt="{{ Auth::user()->name }}"
+           class="h-8 w-8 rounded-full object-cover" />
+    @else
+      <x-heroicon-o-user-circle class="h-8 w-8 text-gray-600" />
+    @endif
+    <span class="font-semibold">{{ Auth::user()->name }}</span>
+  </li>
 
-        <li>
-          <a href="/login" class="flex items-center gap-2 px-3 py-2 rounded border hover:bg-white">
-            <x-heroicon-o-user class="h-5 w-5" />
-            <span class="font-semibold">Login</span>
-          </a>
-        </li>
+  <li>
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-white">
+      <x-heroicon-o-user class="h-5 w-5" />
+      <span>Profile</span>
+    </a>
+  </li>
+
+  <li>
+    <form action="{{ route('logout') }}" method="POST">
+      @csrf
+      <button type="submit" class="flex items-center gap-2 px-3 py-2 w-full text-left rounded hover:bg-white">
+        <x-heroicon-o-arrow-right-on-rectangle class="h-5 w-5" />
+        <span>Logout</span>
+      </button>
+    </form>
+  </li>
+@else
+  <li>
+    <a href="/login" class="flex items-center gap-2 px-3 py-2 rounded border hover:bg-white">
+      <x-heroicon-o-user class="h-5 w-5" />
+      <span class="font-semibold">Login</span>
+    </a>
+  </li>
+@endauth
+        
       </ul>
     </nav>
   </div>

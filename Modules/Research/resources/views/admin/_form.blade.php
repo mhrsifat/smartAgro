@@ -1,3 +1,14 @@
+
+@if ($errors->any())
+    <div class="p-4 mb-4 text-red-700 bg-red-100 rounded">
+        <ul class="list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <x-forms.input label="Title" name="title" type="text"
     value="{{ old('title', $research->title ?? '') }}" />
 
@@ -15,10 +26,6 @@
     :options="['draft' => 'Draft', 'under_review' => 'Under Review', 'published' => 'Published']"
     :selected="old('status', $research->status ?? 'draft')" />
 
-<x-forms.select label="Owner" name="user_id"
-    :options="$users"
-    :selected="old('user_id', $research->user_id ?? '')" />
-
 <div class="mb-4">
     <label class="block text-sm font-medium text-gray-700 mb-1">Featured Image</label>
     <input type="file" name="image" class="block w-full text-sm text-gray-700">
@@ -30,8 +37,8 @@
 <div class="mb-4">
     <label class="block text-sm font-medium text-gray-700 mb-1">Research Paper</label>
     <input type="file" name="paper" class="block w-full text-sm text-gray-700">
-    @if(!empty($research->paper))
-        <a href="{{ asset($research->paper) }}" target="_blank" class="text-indigo-600 underline">View Uploaded Paper</a>
+    @if(!empty($research->research_file))
+        <a href="{{ asset($research->research_file) }}" target="_blank" class="text-indigo-600 underline">View Uploaded Paper</a>
     @endif
 </div>
 

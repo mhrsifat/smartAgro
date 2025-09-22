@@ -38,14 +38,13 @@
                         <td class="px-4 py-2">{{ ucfirst(str_replace('_', ' ', $research->status)) }}</td>
                         <td class="px-4 py-2">{{ $research->is_featured ? 'Yes' : 'No' }}</td>
                         <td class="px-4 py-2">{{ optional($research->user)->name ?? '—' }}</td>
-                        <td class="px-4 py-2 flex gap-2">
-                            <a href="{{ route('admin.researches.show', $research->id) }}" class="px-2 py-1 border rounded">View</a>
-                            <a href="{{ route('admin.researches.edit', $research->id) }}" class="px-2 py-1 border rounded">Edit</a>
-                            <form action="{{ route('admin.researches.destroy', $research->id) }}" method="POST" onsubmit="return confirm('Are you sure?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-2 py-1 border rounded text-red-600">Delete</button>
-                            </form>
+                        <td class="px-4 py-2 flex gap-2"><a href="{{ route('admin.researches.show', $research) }}" class="px-2 py-1 border rounded">View</a>
+<a href="{{ route('admin.researches.edit', $research) }}" class="px-2 py-1 border rounded">Edit</a>
+<form action="{{ route('admin.researches.destroy', $research) }}" method="POST" onsubmit="return confirm('Are you sure?');">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="px-2 py-1 border rounded text-red-600">Delete</button>
+</form>
                         </td>
                     </tr>
                 @empty

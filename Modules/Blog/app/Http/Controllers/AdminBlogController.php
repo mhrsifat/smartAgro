@@ -3,80 +3,123 @@
 namespace Modules\Blog\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Modules\Blog\Models\Blog;
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class AdminBlogController extends Controller
 {
-    public function index()
-    {
-        $blogs = Blog::latest()->paginate(10);
-        return view('blog::index', compact('blogs'));
+    public function index(Request $request)
+{
+    $query = Blog::query()->with('author'); // eager load author to prevent N+1 query
+
+    if ($search = $request->input('q')) {
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('content', 'like', "%{$search}%")
+              ->orWhereHas('author', function ($authorQuery) use ($search) {
+                  $authorQuery->where('name', 'like', "%{$search}%");
+              });
+        });
     }
+
+    $blogs = $query->latest()->paginate(10)->withQueryString();
+
+    return view('blog::index', compact('blogs'));
+}
 
     public function create()
     {
-        return view('blog::create');
+        $users = User::pluck('name', 'id');
+        return view('blog::create', compact('users'));
     }
-    
-    
-public function show($id)
-{
-    $blog = \Modules\Blog\Models\Blog::findOrFail($id);
-    return view('blog::show', compact('blog'));
-}
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required',
-            'image' => 'nullable|image'
-        ]);
-
-        $data['slug'] = \Str::slug($request->title);
-        $data['user_id'] = auth()->id();
+        $data = $this->validateData($request);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('blogs', 'public');
+            $data['image'] = $this->uploadImage($request->file('image'));
         }
 
         Blog::create($data);
 
-        return redirect()->route('admin.blogs.index')->with('success', 'Blog created successfully!');
+        return redirect()->route('admin.blogs.index')
+                         ->with('success', 'Blog created successfully.');
     }
 
     public function edit(Blog $blog)
     {
-        return view('blog::edit', compact('blog'));
+        $users = User::pluck('name', 'id');
+        return view('blog::edit', compact('blog', 'users'));
     }
 
     public function update(Request $request, Blog $blog)
     {
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required',
-            'image' => 'nullable|image'
-        ]);
-
-        $data['slug'] = \Str::slug($request->title);
+        $data = $this->validateData($request, $blog->id);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('blogs', 'public');
+            $this->deleteImage($blog->image);
+            $data['image'] = $this->uploadImage($request->file('image'));
         }
 
         $blog->update($data);
 
-        return redirect()->route('admin.blogs.index')->with('success', 'Blog updated successfully!');
+        return redirect()->route('admin.blogs.index')
+                         ->with('success', 'Blog updated successfully.');
     }
 
     public function destroy(Blog $blog)
     {
-        if ($blog->image) {
-    \Storage::disk('public')->delete($blog->image);
-}
-$blog->delete();
-        return redirect()->route('admin.blogs.index')->with('success', 'Blog deleted successfully!');
+        $this->deleteImage($blog->image);
+        $blog->delete();
+
+        return redirect()->route('admin.blogs.index')
+                         ->with('success', 'Blog deleted successfully.');
+    }
+
+    public function show(Blog $blog)
+    {
+        return view('blog::show', compact('blog'));
+    }
+
+    /**
+     * Validate blog data
+     */
+    protected function validateData(Request $request, $blogId = null)
+    {
+        $uniqueSlug = 'unique:blogs,slug';
+        if ($blogId) {
+            $uniqueSlug .= ',' . $blogId;
+        }
+
+        return $request->validate([
+            'title'     => 'required|string|max:255',
+            'content'   => 'required|string',
+            'excerpt'   => 'nullable|string|max:500',
+            'slug'      => "required|string|$uniqueSlug",
+            'image'     => 'nullable|image|max:2048',
+            'author_id' => 'nullable|exists:users,id',
+            'status'    => 'required|in:draft,published',
+        ]);
+    }
+
+    /**
+     * Upload image to storage
+     */
+    protected function uploadImage($image)
+    {
+        return $image->store('blog_images', 'public');
+    }
+
+    /**
+     * Delete image from storage
+     */
+    protected function deleteImage($image)
+    {
+        if ($image) {
+            Storage::disk('public')->delete($image);
+        }
     }
 }
-

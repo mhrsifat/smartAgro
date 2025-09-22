@@ -28,7 +28,8 @@ class BlogDatabaseSeeder extends Seeder
                 'excerpt' => $faker->paragraph(),
                 'slug' => Str::slug($faker->sentence()) . '-' . $faker->unique()->numberBetween(1, 1000),
                 'image' => $faker->imageUrl(800, 600),
-                'user_id' => $faker->randomElement($userIds),
+                'author_id' => $faker->randomElement($userIds),
+                'status' => 'published',
             ]);
         }
         

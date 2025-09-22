@@ -17,7 +17,7 @@ return new class extends Migration
     $table->text('description');
     $table->string('slug')->unique();
     $table->string('image')->nullable();
-    $table->json('authors')->nullable();
+    $table->string('authors')->nullable();
     $table->enum('status', ['draft', 'under_review', 'published'])->default('draft');
     $table->boolean('is_featured')->default(false);
     $table->string('download_url')->nullable();

@@ -10,6 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.3/dist/echo.iife.js"></script>
+    
+    <!-- Bladewind UI -->
+    <link href="/bladewind/css/bladewind-ui.min.css" rel="stylesheet" />
+    <script src="/bladewind/js/helpers.js"></script>
 
     @livewireStyles
 </head>

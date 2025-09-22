@@ -2,33 +2,25 @@
 
 namespace Modules\Blog\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Blog\Database\Factories\BlogFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Blog extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'title',
         'content',
         'excerpt',
         'slug',
         'image',
-        'user_id',
+        'author_id',
+        'status',
     ];
 
-    // protected static function newFactory(): BlogFactory
-    // {
-    //     // return BlogFactory::new();
-    // }
-    
-    public function getRouteKeyName()
-{
-    return 'slug';
-}
+    public function author()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'author_id');
+    }
 }

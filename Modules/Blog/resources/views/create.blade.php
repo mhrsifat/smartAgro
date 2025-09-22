@@ -1,68 +1,65 @@
-<x-app-layout title="Create Blog Post">
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-            Create Blog Post
-        </h2>
-    </x-slot>
+<x-app-layout title="Create Blog">
+    <x-headings.page-title :title="'Create Blog'" />
 
-    <div class="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-        <form method="POST" action="{{ route('admin.blogs.store') }}" enctype="multipart/form-data" class="space-y-6">
+    <div class="bg-white p-6 rounded shadow">
+        <form action="{{ route('admin.blogs.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
-            <!-- Title -->
             <div>
-                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                <input 
-                    type="text" 
-                    name="title" 
-                    id="title" 
-                    value="{{ old('title') }}" 
-                    required 
-                    class="w-full mt-1 border-gray-300 rounded-lg shadow-sm dark:bg-gray-700 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                @error('title')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+                <label class="block text-sm font-medium">Title</label>
+                <input name="title" value="{{ old('title') }}" class="mt-1 block w-full form-input" />
+                @error('title') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <!-- Content -->
             <div>
-                <label for="content" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
-                <textarea 
-                    name="content" 
-                    id="content" 
-                    rows="6" 
-                    required 
-                    class="w-full mt-1 border-gray-300 rounded-lg shadow-sm dark:bg-gray-700 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
-                >{{ old('content') }}</textarea>
-                @error('content')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+                <label class="block text-sm font-medium">Slug</label>
+                <input name="slug" value="{{ old('slug') }}" class="mt-1 block w-full form-input" />
+                @error('slug') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <!-- Image Upload -->
             <div>
-                <label for="image" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Featured Image</label>
-                <input 
-                    type="file" 
-                    name="image" 
-                    id="image" 
-                    accept="image/*" 
-                    class="w-full mt-1 text-gray-700 dark:text-gray-200"
-                >
-                @error('image')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+                <label class="block text-sm font-medium">Excerpt</label>
+                <textarea name="excerpt" rows="2" class="mt-1 block w-full form-textarea">{{ old('excerpt') }}</textarea>
+                @error('excerpt') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <!-- Submit Button -->
             <div>
-                <button 
-                    type="submit" 
-                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                    Publish Blog
-                </button>
+                <label class="block text-sm font-medium">Content</label>
+                <textarea name="content" rows="8" class="mt-1 block w-full form-textarea">{{ old('content') }}</textarea>
+                @error('content') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium">Author</label>
+                    <select name="author_id" class="mt-1 block w-full form-select">
+                        <option value="">-- Select author --</option>
+                        @foreach($users as $id => $name)
+                            <option value="{{ $id }}" {{ old('author_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    @error('author_id') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium">Status</label>
+                    <select name="status" class="mt-1 block w-full form-select">
+                        <option value="draft" {{ old('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+                        <option value="published" {{ old('status') === 'published' ? 'selected' : '' }}>Published</option>
+                    </select>
+                    @error('status') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium">Image</label>
+                <input type="file" name="image" class="mt-1 block w-full" />
+                @error('image') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="{{ route('admin.blogs.index') }}" class="px-4 py-2 border rounded">Cancel</a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Create</button>
             </div>
         </form>
     </div>

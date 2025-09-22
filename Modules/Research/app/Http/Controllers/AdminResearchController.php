@@ -23,40 +23,43 @@ class AdminResearchController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'title'        => 'required|string|max:255',
-            'description'  => 'required|string',
-            'slug'         => 'required|string|unique:researches,slug',
-            'image'        => 'nullable|image',
-            'authors'      => 'nullable|string',
-            'status'       => 'required|in:draft,under_review,published',
-            'is_featured'  => 'nullable|boolean',
-            'paper'        => 'nullable|file|mimes:pdf,doc,docx',
-            'user_id'      => 'nullable|exists:users,id',
-        ]);
+{
+    $data = $request->validate([
+        'title'        => 'required|string|max:255',
+        'description'  => 'required|string',
+        'slug'         => 'required|string|unique:researches,slug',
+        'image'        => 'nullable|image',
+        'authors'      => 'nullable|string',
+        'status'       => 'required|in:draft,under_review,published',
+        'is_featured'  => 'nullable|boolean',
+        'paper'        => 'nullable|file|mimes:pdf,doc,docx',
+    ]);
 
-        // Featured image
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('uploads/researches/images', 'public');
-            $data['image'] = 'storage/' . $path;
-        } else {
-            $data['image'] = 'storage/uploads/researches/images/default.jpg';
-        }
-
-        // Research paper
-        if ($request->hasFile('paper')) {
-            $path = $request->file('paper')->store('uploads/researches/papers', 'public');
-            $data['paper'] = 'storage/' . $path;
-        }
-
-        $data['is_featured'] = $request->boolean('is_featured');
-
-        Research::create($data);
-
-        return redirect()->route('admin.researches.index')
-            ->with('success', 'Research created successfully.');
+    // Featured image
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('uploads/researches/images', 'public');
+        $data['image'] = 'storage/' . $path;
+    } else {
+        $data['image'] = 'storage/uploads/researches/images/default.jpg'; 
+        // Make sure this file exists or set null
     }
+
+    // Research paper
+    if ($request->hasFile('paper')) {
+        $path = $request->file('paper')->store('uploads/researches/papers', 'public');
+        $data['paper'] = 'storage/' . $path;
+    }
+
+    $data['is_featured'] = $request->boolean('is_featured');
+
+    // Assign logged-in user
+    $data['user_id'] = auth()->id();
+
+    Research::create($data);
+
+    return redirect()->route('admin.researches.index')
+        ->with('success', 'Research created successfully.');
+}
 
     public function show(Research $research)
     {
@@ -81,7 +84,6 @@ class AdminResearchController extends Controller
             'is_featured'  => 'nullable|boolean',
             'download_url' => 'nullable|url',
             'paper'        => 'nullable|file|mimes:pdf,doc,docx',
-            'user_id'      => 'nullable|exists:users,id',
         ]);
 
         // Replace image
