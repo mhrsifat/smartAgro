@@ -12,8 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.3/dist/echo.iife.js"></script>
     
     <!-- Bladewind UI -->
-    <link href="/bladewind/css/bladewind-ui.min.css" rel="stylesheet" />
-    <script src="/bladewind/js/helpers.js"></script>
+    <link href="{{ asset('vendor/bladewind/css/animate.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('vendor/bladewind/css/bladewind-ui.min.css') }}" rel="stylesheet" />
 
     @livewireStyles
 </head>
@@ -298,7 +298,7 @@
         }
     };
 </script>
-
+<script src="{{ asset('vendor/bladewind/js/helpers.js') }}" type="text/javascript"></script>
   @livewireScripts
   @stack('scripts')
 </body>
