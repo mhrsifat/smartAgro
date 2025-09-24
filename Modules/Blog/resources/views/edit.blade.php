@@ -56,7 +56,11 @@
                 <label class="block text-sm font-medium">Image</label>
                 @if($blog->image)
                     <div class="mb-2">
+                        @if(Str::startsWith($blog->image, ['http://', 'https://']))
+                            <img src="{{ $blog->image }}" class="w-32 h-20 object-cover rounded" alt="">
+                        @else
                         <img src="{{ asset('storage/'.$blog->image) }}" class="w-32 h-20 object-cover rounded" alt="">
+                        @endif
                     </div>
                 @endif
                 <input type="file" name="image" class="mt-1 block w-full" />

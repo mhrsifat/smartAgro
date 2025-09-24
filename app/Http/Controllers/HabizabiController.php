@@ -13,6 +13,14 @@ class HabizabiController extends Controller
     public function contact() {
       return view('contact');
     }
+
+    public function impact() {
+      return view('impact');
+    } 
+
+    public function achievements() {
+      return view('achievements');
+    }
     
     public function submit(ContactRequest $request)
     {

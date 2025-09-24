@@ -10,5 +10,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
 
 Route::prefix('blogs')->group(function () {
     Route::get('/', [BlogController::class, 'index'])->name('blogs.index');
-    Route::get('{blog}', [BlogController::class, 'show'])->name('blog.show');
+    Route::get('{blog}', [BlogController::class, 'show'])->name('blogs.show');
 });

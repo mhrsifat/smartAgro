@@ -4,7 +4,11 @@
     <div class="bg-white p-6 rounded shadow space-y-6">
         <div class="flex items-start gap-6">
             @if($blog->image)
-                <img src="{{ asset('storage/'.$blog->image) }}" class="w-48 h-32 object-cover rounded" alt="">
+                @if(Str::startsWith($blog->image, ['http://', 'https://']))
+                    <img src="{{ $blog->image }}" class="w-48 h-32 object-cover rounded" alt="">
+                @else
+                    <img src="{{ asset('storage/'.$blog->image) }}" class="w-48 h-32 object-cover rounded" alt="">
+                @endif
             @endif
             <div>
                 <p class="text-sm text-gray-500">By: {{ optional($blog->author)->name ?? '—' }}</p>

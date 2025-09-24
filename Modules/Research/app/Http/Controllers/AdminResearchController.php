@@ -7,6 +7,7 @@ use Modules\Research\Models\Research;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminResearchController extends Controller
 {
@@ -23,43 +24,40 @@ class AdminResearchController extends Controller
     }
 
     public function store(Request $request)
-{
-    $data = $request->validate([
-        'title'        => 'required|string|max:255',
-        'description'  => 'required|string',
-        'slug'         => 'required|string|unique:researches,slug',
-        'image'        => 'nullable|image',
-        'authors'      => 'nullable|string',
-        'status'       => 'required|in:draft,under_review,published',
-        'is_featured'  => 'nullable|boolean',
-        'paper'        => 'nullable|file|mimes:pdf,doc,docx',
-    ]);
+    {
+        $data = $request->validate([
+            'title'        => 'required|string|max:255',
+            'description'  => 'required|string',
+            'slug'         => 'required|string|unique:researches,slug',
+            'image'        => 'nullable|image',
+            'authors'      => 'nullable|string',
+            'status'       => 'required|in:draft,under_review,published',
+            'is_featured'  => 'nullable|boolean',
+            'paper'        => 'nullable|file|mimes:pdf,doc,docx',
+        ]);
 
-    // Featured image
-    if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('uploads/researches/images', 'public');
-        $data['image'] = 'storage/' . $path;
-    } else {
-        $data['image'] = 'storage/uploads/researches/images/default.jpg'; 
-        // Make sure this file exists or set null
+        // Featured image
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('uploads/researches/images', 'public');
+            $data['image'] = 'storage/' . $path;
+        } else {
+            $data['image'] = null;
+        }
+
+        // Research paper
+        if ($request->hasFile('paper')) {
+            $path = $request->file('paper')->store('uploads/researches/papers', 'public');
+            $data['download_url'] = 'storage/' . $path;
+        }
+
+        $data['is_featured'] = $request->boolean('is_featured');
+        $data['user_id'] = auth()->id();
+
+        Research::create($data);
+
+        return redirect()->route('admin.researches.index')
+            ->with('success', 'Research created successfully.');
     }
-
-    // Research paper
-    if ($request->hasFile('paper')) {
-        $path = $request->file('paper')->store('uploads/researches/papers', 'public');
-        $data['paper'] = 'storage/' . $path;
-    }
-
-    $data['is_featured'] = $request->boolean('is_featured');
-
-    // Assign logged-in user
-    $data['user_id'] = auth()->id();
-
-    Research::create($data);
-
-    return redirect()->route('admin.researches.index')
-        ->with('success', 'Research created successfully.');
-}
 
     public function show(Research $research)
     {
@@ -77,7 +75,11 @@ class AdminResearchController extends Controller
         $data = $request->validate([
             'title'        => 'required|string|max:255',
             'description'  => 'required|string',
-            'slug'         => "required|string|unique:researches,slug,{$research->id}",
+            'slug'         => [
+                'required',
+                'string',
+                Rule::unique('researches', 'slug')->ignore($research->id),
+            ],
             'image'        => 'nullable|image',
             'authors'      => 'nullable|string',
             'status'       => 'required|in:draft,under_review,published',
@@ -98,12 +100,12 @@ class AdminResearchController extends Controller
 
         // Replace paper
         if ($request->hasFile('paper')) {
-            if ($research->paper && str_contains($research->paper, 'storage/')) {
-                $oldPath = str_replace('storage/', '', $research->paper);
+            if ($research->download_url && str_contains($research->download_url, 'storage/')) {
+                $oldPath = str_replace('storage/', '', $research->download_url);
                 Storage::disk('public')->delete($oldPath);
             }
             $path = $request->file('paper')->store('uploads/researches/papers', 'public');
-            $data['paper'] = 'storage/' . $path;
+            $data['download_url'] = 'storage/' . $path;
         }
 
         $data['is_featured'] = $request->boolean('is_featured');
@@ -121,8 +123,8 @@ class AdminResearchController extends Controller
             Storage::disk('public')->delete($oldPath);
         }
 
-        if ($research->paper && str_contains($research->paper, 'storage/')) {
-            $oldPath = str_replace('storage/', '', $research->paper);
+        if ($research->research_file && str_contains($research->research_file, 'storage/')) {
+            $oldPath = str_replace('storage/', '', $research->research_file);
             Storage::disk('public')->delete($oldPath);
         }
 

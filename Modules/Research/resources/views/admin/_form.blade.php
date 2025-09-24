@@ -37,8 +37,8 @@
 <div class="mb-4">
     <label class="block text-sm font-medium text-gray-700 mb-1">Research Paper</label>
     <input type="file" name="paper" class="block w-full text-sm text-gray-700">
-    @if(!empty($research->research_file))
-        <a href="{{ asset($research->research_file) }}" target="_blank" class="text-indigo-600 underline">View Uploaded Paper</a>
+    @if(!empty($research->download_url))
+        <a href="{{ asset($research->download_url) }}" target="_blank" class="text-indigo-600 underline">View Uploaded Paper</a>
     @endif
 </div>
 

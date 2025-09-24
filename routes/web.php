@@ -12,6 +12,9 @@ use App\Http\Controllers\Fortify\PasswordController;
 use App\Http\Controllers\Fortify\TwoFactorController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PesticideController;
+use App\Http\Controllers\FertilizerController;
+
 
 Route::get('/test', function () {
     return view('test');
@@ -29,8 +32,19 @@ Route::get('/', [HomeController::class, 'home'])->name('home');
 
 Route::get('/contact', [HabizabiController::class, 'contact'])->name('contact');
 Route::post('/contact/submit', [HabizabiController::class, 'submit'])->name('contact.submit');
+Route::get('/impact', [HabizabiController::class, 'impact'])->name('impact');
+Route::get('/achievements', [HabizabiController::class, 'achievements'])->name('achievements');
 
-Route::get('/suggestion', [CropController::class, 'getSuggestion']);
+Route::get('/crop-planner', [CropController::class, 'getSuggestion'])->name('crop.planner');
+Route::post('/crop-planner', [CropController::class, 'recommendCrop'])->name('recommend.crop');
+
+Route::get('/pesticide-suggestor', [PesticideController::class, 'showForm']); // show form
+Route::post('/pesticide-suggestor', [PesticideController::class, 'recommendPesticide'])->name('recommend.pesticide'); // handle AI request
+
+Route::get('/fertilizer-suggestor', [FertilizerController::class, 'showForm']); // show form
+Route::post('/fertilizer-suggestor', [FertilizerController::class, 'recommendFertilizer'])->name('recommend.fertilizer'); // handle AI
+
+
 Route::get('/disease', [DiseaseController::class, 'diseasePage']);
 Route::post('/disease', [DiseaseController::class, 'analyze'])->name('disease.analyze');
 Route::get('/diagnosis-status', [DiseaseController::class, 'checkDiagnosis']);
@@ -82,26 +96,3 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-
-
-
-
-// Route::get('/notifications/unread', function () {
-//     $user = Auth::user(); // session user
-
-//     if (!$user) {
-//         return response()->json([]); // empty if not logged in
-//     }
-
-//     return $user->notifications()
-//         ->whereNull('read_at')
-//         ->take(10)
-//         ->get()
-//         ->map(function ($note) {
-//             return [
-//                 'id' => $note->id,
-//                 'message' => strip_tags($note->data['message']),
-//                 'url' => $note->data['url'] ?? null,
-//             ];
-//         });
-// })->middleware('auth');

@@ -22,8 +22,8 @@ class ResearchDatabaseSeeder extends Seeder
                 'title' => $faker->sentence(6, true),
                 'description' => $faker->paragraph(5, true),
                 'slug' => Str::slug($faker->unique()->sentence(3, true)),
-                'image' => $faker->imageUrl(640, 480, 'science', true),
-                'authors' => json_encode([$faker->name(), $faker->name()]),
+                'image' => 'https://picsum.photos/640/480?random=' . $i,
+                'authors' => $faker->name(),
                 'status' => $faker->randomElement(['draft', 'under_review', 'published']),
                 'is_featured' => $faker->boolean(20), // 20% chance to be featured
                 'download_url' => $faker->url(),

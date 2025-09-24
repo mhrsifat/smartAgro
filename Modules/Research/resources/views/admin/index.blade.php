@@ -25,15 +25,12 @@
                     <tr>
                         <td class="px-4 py-2">{{ $research->id }}</td>
                         <td class="px-4 py-2">
-                            <a href="{{ route('admin.researches.show', $research->id) }}" class="hover:underline">
+                            <a href="{{ route('admin.researches.show', $research->slug) }}" class="hover:underline">
                                 {{ $research->title }}
                             </a>
                         </td>
                         <td class="px-4 py-2 text-sm">
-                            @php
-                                $authors = is_string($research->authors) ? json_decode($research->authors, true) : $research->authors;
-                            @endphp
-                            {{ $authors ? implode(', ', $authors) : '—' }}
+                            {{ ucfirst($research->authors) }}
                         </td>
                         <td class="px-4 py-2">{{ ucfirst(str_replace('_', ' ', $research->status)) }}</td>
                         <td class="px-4 py-2">{{ $research->is_featured ? 'Yes' : 'No' }}</td>

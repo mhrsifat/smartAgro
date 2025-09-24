@@ -2,7 +2,7 @@
     <x-headings.page-title title="Edit Research" />
     <x-headings.section-title title="Update research" />
 
-    <form method="POST" action="{{ route('admin.researches.update', $research->id) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('admin.researches.update', $research->slug) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         @include('research::admin._form')

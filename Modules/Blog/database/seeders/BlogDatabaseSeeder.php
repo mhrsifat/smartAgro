@@ -27,7 +27,7 @@ class BlogDatabaseSeeder extends Seeder
                 'content' => $faker->paragraphs(5, true),
                 'excerpt' => $faker->paragraph(),
                 'slug' => Str::slug($faker->sentence()) . '-' . $faker->unique()->numberBetween(1, 1000),
-                'image' => $faker->imageUrl(800, 600),
+                'image' => 'https://picsum.photos/640/480?random=' . $i,
                 'author_id' => $faker->randomElement($userIds),
                 'status' => 'published',
             ]);

@@ -16,6 +16,14 @@
     <div id="researchList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         @foreach($researches as $research)
             <div class="research-card bg-white shadow-md rounded-lg p-5 hover:shadow-xl transition">
+                @if($research->image)
+                    {{-- If starts with http or https --}}
+                    @if(Str::startsWith($research->image, ['http://', 'https://']))
+                        <img src="{{ $research->image }}" alt="{{ $research->title }}" class="w-full h-48 object-cover rounded mb-4">
+                    @else
+                        <img src="{{ asset($research->image) }}" alt="{{ $research->title }}" class="w-full h-48 object-cover rounded mb-4">
+                    @endif
+                @endif
                 <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ $research->title }}</h2>
                 <p class="text-gray-600 mb-4">{{ Str::limit($research->description, 100) }}</p>
                 <a href="{{ route('research.show', $research->slug) }}" class="text-green-700 hover:underline font-medium">Read More →</a>

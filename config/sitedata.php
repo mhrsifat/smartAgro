@@ -10,17 +10,17 @@ return [
         ['key' => 'home', 'name' => 'Home', 'url' => '/', 'icon' => 'heroicon-o-home'],
         ['key' => 'research', 'name' => 'Research', 'url' => '/research', 'icon' => 'heroicon-o-beaker'],
         ['key' => 'service', 'name' => 'Service', 'url' => '#', 'hasChildren' => true, 'icon' => 'heroicon-o-wrench'],
+        ['key' => 'blogs', 'name' => 'Blog', 'url' => '/blogs', 'icon' => 'heroicon-o-newspaper'],
         ['key' => 'impact', 'name' => 'Impact', 'url' => '/impact', 'icon' => 'heroicon-o-chart-bar'],
-        ['key' => 'where', 'name' => 'Where We Work', 'url' => '/where-we-work', 'icon' => 'heroicon-o-globe-alt'],
+        ['key' => 'where', 'name' => 'Achievements', 'url' => '/achievements', 'icon' => 'heroicon-o-globe-alt'],
         ['key' => 'team', 'name' => 'Our Team', 'url' => '/our-team', 'icon' => 'heroicon-o-users'],
-        ['key' => 'blog', 'name' => 'Blog', 'url' => '/blogs', 'icon' => 'heroicon-o-briefcase'],
     ],
 
     // Service dropdown
     'serviceItems' => [
         ['key' => 'crop-planner', 'name' => 'Crop Planner', 'url' => '/crop-planner', 'icon' => 'heroicon-o-sparkles'],
-        ['key' => 'pesticide', 'name' => 'Pesticide', 'url' => '/pesticide', 'icon' => 'heroicon-o-beaker'],
-        ['key' => 'fertilizer', 'name' => 'Fertilizer', 'url' => '/fertilizer', 'icon' => 'heroicon-o-cube'],
+        ['key' => 'pesticide', 'name' => 'Pesticide', 'url' => '/pesticide-suggestor', 'icon' => 'heroicon-o-beaker'],
+        ['key' => 'fertilizer', 'name' => 'Fertilizer', 'url' => '/fertilizer-suggestor', 'icon' => 'heroicon-o-cube'],
         ['key' => 'disease', 'name' => 'Disease', 'url' => '/disease', 'icon' => 'heroicon-o-exclamation-triangle'],
     ],
 

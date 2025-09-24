@@ -10,11 +10,8 @@
 
     <!-- Search Input -->
     <div class="mb-6">
-        <x-bladewind::input 
-            name="search" 
-            id="searchInput" 
-            placeholder="Search blogs..." 
-            prefix="search" />
+        <input type="text" id="searchInput" placeholder="Search researches..."
+               class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
     </div>
 
     <!-- Blog List -->
@@ -22,13 +19,19 @@
         @foreach($blogs as $blog)
             <x-bladewind::card class="hover:shadow-xl transition">
                 @if($blog->image)
-                    <img src="{{ asset('storage/' . $blog->image) }}" 
-                         alt="{{ $blog->title }}" 
-                         class="w-full h-40 object-cover rounded mb-3">
+                    @if(Str::startsWith($blog->image, ['http://', 'https://']))
+                        <img src="{{ $blog->image }}" 
+                             alt="{{ $blog->title }}" 
+                             class="w-full h-40 object-cover rounded mb-3">
+                    @else
+                        <img src="{{ asset('storage/' . $blog->image) }}" 
+                             alt="{{ $blog->title }}" 
+                             class="w-full h-40 object-cover rounded mb-3">
+                    @endif
                 @endif
                 <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ $blog->title }}</h2>
                 <p class="text-gray-600 mb-4">{{ Str::limit($blog->excerpt, 120) }}</p>
-                <a href="{{ route('blog.show', $blog->slug) }}" 
+                <a href="{{ route('blogs.show', $blog->slug) }}" 
                    class="text-green-700 hover:underline font-medium flex items-center gap-1">
                    Read More <x-heroicon-o-arrow-right class="w-4 h-4"/>
                 </a>
@@ -49,7 +52,7 @@
     searchInput.addEventListener('input', function() {
         const query = this.value;
 
-        axios.get("{{ route('blog.index') }}", { params: { search: query } })
+        axios.get("{{ route('blogs.index') }}", { params: { search: query } })
             .then(res => {
                 blogList.innerHTML = '';
                 if(res.data.data.length === 0){

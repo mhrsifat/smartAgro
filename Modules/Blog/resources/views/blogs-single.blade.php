@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <a href="{{ route('blog.index') }}" 
+    <a href="{{ route('blogs.index') }}" 
        class="text-green-700 hover:underline mb-4 inline-flex items-center gap-1">
         <x-heroicon-o-arrow-left class="w-5 h-5"/> Back to Blogs
     </a>
@@ -14,9 +14,15 @@
     </h1>
 
     @if($blog->image)
-        <img src="{{ asset('storage/' . $blog->image) }}" 
-             alt="{{ $blog->title }}" 
-             class="w-full max-h-96 object-cover rounded mb-6">
+        @if(Str::startsWith($blog->image, ['http://', 'https://']))
+            <img src="{{ $blog->image }}" 
+                 alt="{{ $blog->title }}" 
+                 class="w-full max-h-96 object-cover rounded mb-6">
+        @else
+            <img src="{{ asset('storage/' . $blog->image) }}" 
+                 alt="{{ $blog->title }}" 
+                 class="w-full max-h-96 object-cover rounded mb-6">
+        @endif
     @endif
 
     <div class="prose max-w-none text-gray-700 mb-4">

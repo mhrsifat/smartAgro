@@ -52,7 +52,11 @@
                         </td>
                         <td class="px-4 py-3">
                             @if($blog->image)
+                             @if(Str::startsWith($blog->image, ['http://', 'https://']))
+                                <img src="{{ $blog->image }}" class="w-16 h-10 object-cover rounded" alt="thumb">
+                            @else
                                 <img src="{{ asset('storage/'.$blog->image) }}" class="w-16 h-10 object-cover rounded" alt="thumb">
+                            @endif
                             @else
                                 <span class="text-xs text-gray-500">—</span>
                             @endif
