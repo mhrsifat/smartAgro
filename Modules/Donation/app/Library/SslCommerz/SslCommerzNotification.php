@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Library\SslCommerz;
+namespace Modules\Donation\Library\SslCommerz;
 
 class SslCommerzNotification extends AbstractSslCommerz
 {
@@ -18,7 +18,7 @@ class SslCommerzNotification extends AbstractSslCommerz
      */
     public function __construct()
     {
-        $this->config = config('sslcommerz');
+        $this->config = config('donation.payment.sslcommerz');
 
         $this->setStoreId($this->config['apiCredentials']['store_id']);
         $this->setStorePassword($this->config['apiCredentials']['store_password']);

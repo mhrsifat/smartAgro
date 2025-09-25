@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Modules\Blog\Database\Seeders\BlogDatabaseSeeder;
 use Modules\Research\Database\Seeders\ResearchDatabaseSeeder;
-use Modules\Research\Database\Seeders\DonationDatabaseSeeder;
+use Modules\Donation\Database\Seeders\DonationDatabaseSeeder;
 
 
 class DatabaseSeeder extends Seeder

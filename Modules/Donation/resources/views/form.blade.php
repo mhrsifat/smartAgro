@@ -64,6 +64,8 @@
             @error('message') <p class="text-red-600">{{ $message }}</p> @enderror
         </div>
 
+        <input type="hidden" name="product_category" value="donation">
+
         <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Donate Now</button>
     </form>
 </div>

@@ -20,6 +20,10 @@ return new class extends Migration {
             $table->string('payment_gateway')->nullable();
             $table->string('transaction_id')->nullable();
             $table->enum('status', ['pending', 'completed', 'failed', 'cancelled'])->default('pending');
+            $table->text('admin_notes')->nullable();
+            $table->timestamp('status_updated_at')->nullable();
+            $table->unsignedBigInteger('status_updated_by')->nullable();
+            $table->timestamp('donated_at')->nullable();
             $table->timestamps();
         });
     }

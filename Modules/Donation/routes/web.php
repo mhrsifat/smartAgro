@@ -39,10 +39,12 @@ Route::prefix('donation')->name('donation.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin Donation Routes
+/*
+|--------------------------------------------------------------------------
+| Enhanced Admin Donation Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin-access'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     // Donation CRUD
     Route::get('/donations', [AdminDonationController::class, 'index'])->name('donations.index');
     Route::get('/donations/create', [AdminDonationController::class, 'create'])->name('donations.create');
@@ -50,6 +52,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin-access'])
     Route::get('/donations/{donation}', [AdminDonationController::class, 'show'])->name('donations.show');
     Route::patch('/donations/{donation}/status', [AdminDonationController::class, 'updateStatus'])->name('donations.updateStatus');
 
-    // Donation Report
-    Route::get('/donations-report', [AdminDonationController::class, 'report'])->name('donations.report');
+    // Enhanced routes
+    Route::post('/donations/bulk-update', [AdminDonationController::class, 'bulkUpdate'])->name('donations.bulkUpdate');
+    Route::get('/donations/export', [AdminDonationController::class, 'export'])->name('donations.export');
+    Route::get('/donations/report', [AdminDonationController::class, 'report'])->name('donations.report');
 });

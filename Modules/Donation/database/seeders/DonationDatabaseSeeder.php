@@ -3,7 +3,7 @@
 namespace Modules\Donation\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Donation\Entities\Donation;
+use Modules\Donation\Models\Donation;
 use Illuminate\Support\Str;
 use Faker\Factory as Faker;
 

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Modules\Donation\Models\Donation;
-use Modules\Donation\App\Library\SSLCommerz\SSLCommerzNotification;
+use Modules\Donation\Library\SslCommerz\SslCommerzNotification;
 
 class DonationController extends Controller
 {
@@ -40,6 +40,7 @@ class DonationController extends Controller
             'message'      => 'nullable|string',
             'anonymous'    => 'nullable|boolean',
             'payment_gateway' => 'required|in:sslcommerz,bkash,nagad',
+            'product_category' => 'nullable|string|max:50',
         ]);
 
         if (Auth::check() && empty($data['anonymous'])) {
@@ -59,6 +60,7 @@ class DonationController extends Controller
             'anonymous'       => $data['anonymous'] ?? false,
             'status'          => 'pending',
             'payment_gateway' => $data['payment_gateway'],
+            'product_category'=> $data['product_category'] ?? 'donation',
         ]);
 
         switch ($donation->payment_gateway) {
@@ -123,20 +125,35 @@ class DonationController extends Controller
     protected function payWithSslcommerz(Donation $donation)
     {
         $post_data = [
-            'total_amount' => $donation->amount,
-            'currency'     => $donation->currency,
-            'tran_id'      => $donation->id,
-            'success_url'  => route('donation.ssl.success'),
-            'fail_url'     => route('donation.ssl.fail'),
-            'cancel_url'   => route('donation.ssl.cancel'),
-            'cus_name'     => $donation->donor_name ?? 'Guest',
-            'cus_email'    => $donation->donor_email ?? 'guest@example.com',
-            'cus_add1'     => 'Dhaka',
-            'cus_phone'    => $donation->donor_phone ?? '01700000000',
-            'product_name' => 'Donation',
-        ];
+    'total_amount'     => $donation->amount,
+    'currency'         => $donation->currency,
+    'tran_id'          => $donation->id,
 
-        $sslc = new SSLCommerzNotification();
+    // Redirect URLs
+    'success_url'      => route('donation.ssl.success'),
+    'fail_url'         => route('donation.ssl.fail'),
+    'cancel_url'       => route('donation.ssl.cancel'),
+
+    // Customer Info
+    'cus_name'         => $donation->donor_name ?? 'Guest',
+    'cus_email'        => $donation->donor_email ?? 'guest@example.com',
+    'cus_add1'         => 'Dhaka',
+    'cus_city'         => 'Dhaka',
+    'cus_country'      => 'Bangladesh',
+    'cus_phone'        => $donation->donor_phone ?? '01700000000',
+
+    // Product Info
+    'product_name'     => 'Donation',
+    'product_category' => $donation->product_category ?? 'donation',
+    'product_profile'  => 'non-physical-goods',
+
+    // Shipping Info (mandatory)
+    'shipping_method'  => 'NO',
+    'num_of_item'      => 1,
+];
+
+
+        $sslc = new SslCommerzNotification();
         return $sslc->makePayment($post_data, 'hosted', 'json');
     }
 
@@ -178,9 +195,9 @@ class DonationController extends Controller
     
 public function report()
 {
-    $totalDonations = \Modules\Donation\Entities\Donation::sum('amount');
-    $completedCount = \Modules\Donation\Entities\Donation::where('status', 'completed')->count();
-    $pendingCount   = \Modules\Donation\Entities\Donation::where('status', 'pending')->count();
+    $totalDonations = \Modules\Donation\Models\Donation::sum('amount');
+    $completedCount = \Modules\Donation\Models\Donation::where('status', 'completed')->count();
+    $pendingCount   = \Modules\Donation\Models\Donation::where('status', 'pending')->count();
 
     return view('donation::admin.report', compact('totalDonations', 'completedCount', 'pendingCount'));
 }
