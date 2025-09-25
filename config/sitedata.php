@@ -13,7 +13,7 @@ return [
         ['key' => 'blogs', 'name' => 'Blog', 'url' => '/blogs', 'icon' => 'heroicon-o-newspaper'],
         ['key' => 'impact', 'name' => 'Impact', 'url' => '/impact', 'icon' => 'heroicon-o-chart-bar'],
         ['key' => 'where', 'name' => 'Achievements', 'url' => '/achievements', 'icon' => 'heroicon-o-globe-alt'],
-        ['key' => 'team', 'name' => 'Our Team', 'url' => '/our-team', 'icon' => 'heroicon-o-users'],
+        ['key' => 'donation', 'name' => 'Donation', 'url' => '/donation', 'icon' => 'heroicon-o-users'],
     ],
 
     // Service dropdown

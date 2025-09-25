@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Modules\Blog\Database\Seeders\BlogDatabaseSeeder;
 use Modules\Research\Database\Seeders\ResearchDatabaseSeeder;
+use Modules\Research\Database\Seeders\DonationDatabaseSeeder;
 
 
 class DatabaseSeeder extends Seeder
@@ -22,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(AdminSeeder::class);
         $this->call(BlogDatabaseSeeder::class);
         $this->call(ResearchDatabaseSeeder::class);
+        $this->call(DonationDatabaseSeeder::class);
 
         /** User::factory()->create([
             'name' => 'Test User',
