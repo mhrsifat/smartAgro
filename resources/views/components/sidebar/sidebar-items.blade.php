@@ -3,7 +3,8 @@
     url="{{ url('/') }}"
     title="Visit Website"
     icon="icons.visit-website"
-    />  <x-sidebar.link
+    />  
+    <x-sidebar.link
     url="{{ route('admin.dashboard') }}"
     title="Dashboard"
     icon="icons.dashboard"

@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PesticideController;
 use App\Http\Controllers\FertilizerController;
+use App\Http\Controllers\Admin\DashboardController;
+
+Route::middleware(['auth')->prefix('admin')->name('admin.')->group(function(){
+    Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
+});
 
 
 Route::get('/test', function () {
