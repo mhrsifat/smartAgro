@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Modules\Donation\Models\Donation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Mpdf\Mpdf;
 
 class DonationController extends Controller
 {
@@ -365,4 +366,88 @@ class DonationController extends Controller
 
         return back()->with('success', "{$updatedCount} donations updated to {$status} status.");
     }
+public function downloadReportPdf(Request $request)
+{
+    $request->validate([
+        'period' => 'nullable|in:today,week,month,year,custom',
+        'date_from' => 'nullable|date|required_if:period,custom',
+        'date_to' => 'nullable|date|required_if:period,custom|after_or_equal:date_from',
+    ]);
+
+    // --- Determine date range ---
+    $period = $request->get('period', 'month');
+    $dateRanges = match($period) {
+        'today' => [Carbon::today(), Carbon::today()->endOfDay()],
+        'week'  => [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()],
+        'month' => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
+        'year'  => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()],
+        'custom'=> [Carbon::parse($request->date_from), Carbon::parse($request->date_to)->endOfDay()],
+        default => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
+    };
+    [$dateFrom, $dateTo] = $dateRanges;
+
+    // --- Fetch donation data ---
+    $baseQuery = \Modules\Donation\Models\Donation::whereBetween('created_at', [$dateFrom, $dateTo]);
+
+    $totalDonations = $baseQuery->count();
+    $totalAmount = $baseQuery->sum('amount');
+    $completedDonations = (clone $baseQuery)->where('status', 'completed')->count();
+    $completedAmount = (clone $baseQuery)->where('status', 'completed')->sum('amount');
+    $pendingDonations = (clone $baseQuery)->where('status', 'pending')->count();
+    $failedDonations = (clone $baseQuery)->where('status', 'failed')->count();
+
+    $statusBreakdown = \Modules\Donation\Models\Donation::whereBetween('created_at', [$dateFrom, $dateTo])
+                               ->select('status', DB::raw('count(*) as count'), DB::raw('sum(amount) as total'))
+                               ->groupBy('status')->get();
+
+    $paymentGatewayBreakdown = \Modules\Donation\Models\Donation::whereBetween('created_at', [$dateFrom, $dateTo])
+                                       ->select('payment_gateway', DB::raw('count(*) as count'), DB::raw('sum(amount) as total'))
+                                       ->groupBy('payment_gateway')->get();
+
+    $topDonors = \Modules\Donation\Models\Donation::whereBetween('created_at', [$dateFrom, $dateTo])
+                        ->whereNotNull('donor_name')
+                        ->whereNotNull('donor_email')
+                        ->select('donor_name', 'donor_email', DB::raw('sum(amount) as total_donated'), DB::raw('count(*) as donation_count'))
+                        ->groupBy('donor_name', 'donor_email')
+                        ->orderBy('total_donated', 'desc')
+                        ->limit(10)
+                        ->get();
+
+    $data = compact(
+        'period', 'dateFrom', 'dateTo', 'totalDonations', 'totalAmount',
+        'completedDonations', 'completedAmount', 'pendingDonations', 'failedDonations',
+        'statusBreakdown', 'paymentGatewayBreakdown', 'topDonors'
+    );
+
+    // --- Load fonts from config ---
+    $fonts = config('mpdf_fonts');
+    $fontData = [];
+    foreach ($fonts as $key => $paths) {
+        $fontData[$key] = [
+            'R' => basename($paths['R']),
+            'B' => basename($paths['B']),
+        ];
+    }
+
+    // --- Setup mPDF ---
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'default_font' => 'dankmono', 
+        'fontDir' => [storage_path('fonts')],
+        'fontdata' => $fontData,
+    ]);
+
+    // --- Render view as HTML ---
+    $html = view('donation::admin.report_pdf', $data)->render();
+
+    // --- Write PDF ---
+    $mpdf->WriteHTML($html);
+
+    // --- Output PDF download ---
+    return response($mpdf->Output('donations-report-' . now()->format('Y-m-d') . '.pdf', 'S'))
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', 'attachment; filename="donations-report-' . now()->format('Y-m-d') . '.pdf"');
+}
+
 }
