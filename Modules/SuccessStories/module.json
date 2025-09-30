@@ -1,0 +1,11 @@
+{
+    "name": "SuccessStories",
+    "alias": "successstories",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\SuccessStories\\Providers\\SuccessStoriesServiceProvider"
+    ],
+    "files": []
+}

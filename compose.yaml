@@ -1,0 +1,48 @@
+services:
+  app:
+    build: .
+    container_name: laravel_app_smartagro
+    restart: always
+    ports:
+      - "9009:80"
+    volumes:
+      - ./:/var/www/html
+      - ./.env.docker:/var/www/html/.env
+      - laravel_storage:/var/www/html/storage
+      - laravel_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: laravel_db_smartagro
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: docker_test
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel      
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3309:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: laravel_phpmyadmin_smartagro
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8089:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+  laravel_storage:
+  laravel_cache:

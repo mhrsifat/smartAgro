@@ -1,0 +1,11 @@
+{
+    "name": "Research",
+    "alias": "research",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Research\\Providers\\ResearchServiceProvider"
+    ],
+    "files": []
+}

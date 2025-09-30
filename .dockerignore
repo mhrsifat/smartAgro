@@ -1,0 +1,40 @@
+# Ignore version control folders
+.git
+.gitignore
+
+# Ignore IDE/editor files
+.vscode
+.idea
+*.swp
+*.swo
+*.user
+*.sublime-project
+*.sublime-workspace
+
+# Ignore node modules and build artifacts
+node_modules
+npm-debug.log
+yarn-error.log
+/public/hot
+/public/storage
+/storage/*.key
+
+# Ignore vendor (we copy vendor separately in Dockerfile)
+vendor
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary files
+*.log
+*.tmp
+*.cache
+
+# Ignore compiled files
+*.pyc
+*.class
+
+# Ignore environment files
+.env
+.env.docker
