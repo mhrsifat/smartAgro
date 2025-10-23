@@ -1,6 +1,5 @@
 # 🌱 SmartAgro
-AI-powered agro advisory platform offering crop, fertilizer, pesticide and disease suggestions  
-*(bn: advisory = পরামর্শমূলক)*
+AI-powered agro advisory platform offering crop, fertilizer, pesticide and disease suggestions 
 
 ### Live Demo
 https://smartagro.mhrsifat.xyz/
@@ -23,8 +22,6 @@ The backend is optimized for modest *(bn: modest = স্বল্প ক্ষ�
 ## 🖼️ Featured Screens
 | Screenshot | Description |
 |-----------|-------------|
-| https://smartagro.mhrsifat.xyz/ | Crop planner / plant suggestion tool (interactive) |
-| https://smartagro.mhrsifat.xyz/ | Disease scan & fertilizer suggestor tools |
 
 ![Image 1](Screenshot/Screenshot_1.png)
 
