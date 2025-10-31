@@ -1,112 +1,218 @@
-# 🌱 SmartAgro
-AI-powered agro advisory platform offering crop, fertilizer, pesticide and disease suggestions 
+🌱 SmartAgro
 
-### Live Demo
-https://smartagro.mhrsifat.xyz/
+SmartAgro is an AI-powered agricultural advisory platform that helps farmers and agronomists make data-driven decisions. The platform provides intelligent recommendations for crops, fertilizers, pesticides, and disease detection using Google AI Studio models.
 
----
 
-## 🧠 Overview
-SmartAgro is an AI-driven agricultural advisory platform designed to help farmers and agronomists make data-driven *(bn: data-driven = তথ্যনির্ভর)* decisions. Core modules include:
+[smartagro.mhrsifat.xyz](https://smartagro.mhrsifat.xyz/)
 
-- **Crop Planner / Plant Suggestion**
-- **Fertilizer Suggestor**
-- **Pesticide Suggestor**
-- **Disease Scan (image based)**
-
-The platform includes research articles, impact stories, success workflows, and multilingual UI (English, বাংলা, العربية).  
-The backend is optimized for modest *(bn: modest = স্বল্প ক্ষমতাসম্পন্ন)* infrastructure environments.
 
 ---
 
-## 🖼️ Featured Screens
-| Screenshot | Description |
-|-----------|-------------|
+🧠 Overview
 
-![Image 1](Screenshot/Screenshot_1.png)
+SmartAgro empowers the agricultural community with actionable insights, research-backed content, and multilingual support.
 
-![Image 2](Screenshot/Screenshot_2.png)
+Core Modules:
 
-![Image 3](Screenshot/Screenshot_3.png)
+Crop Planner / Plant Suggestion – Suggests the best crops based on soil type and region.
 
-![Image 4](Screenshot/Screenshot_4.png)
+Fertilizer Suggestor – Provides fertilizer recommendations for optimized crop yield.
 
-![Image 5](Screenshot/Screenshot_5.png)
+Pesticide Suggestor – Suggests compatible and safe pesticides.
 
-![Image 6](Screenshot/Screenshot_6.png)
+Disease Scan (Image-based) – Detects crop diseases using images processed by Google AI Studio.
 
-![Image 7](Screenshot/Screenshot_7.png)
+Research Articles & Case Studies – Practical insights and success stories.
 
-![Image 8](Screenshot/Screenshot_8.png)
+Multilingual UI – English, বাংলা, العربية.
 
-![Image 9](Screenshot/Screenshot_9.png)
 
-![Image 10](Screenshot/Screenshot_10.png)
+Key Goals:
 
-![Image 11](Screenshot/Screenshot_11.png)
+Provide actionable, AI-driven recommendations.
 
----
+Lightweight and optimized for modest infrastructure servers.
 
-## 🎯 Core Tools
-- Crop Planner (plant suggestion based on soil & region)
-- Fertilizer recommendation engine
-- Pesticide compatibility suggestion
-- Disease analysis from uploaded images
-- Research‐backed articles & case studies *(bn: case studies = কেস ভিত্তিক বিশ্লেষণ)*
+Extensible architecture for future AI integration.
+
+
 
 ---
 
-## 🧩 Key Features
-- ⚡ Quick actionable tools
-- 🌍 Multilingual (English / বাংলা / العربية)
-- 📦 Docker-ready deployment
-- 📚 Research content & impact stories included
-- 🎛️ Lightweight backend footprint *(bn: footprint = সম্পদ ব্যবহার)*
+👤 Admin Credentials
+
+Email: admin@gmail.com
+
+Password: 12345678
+
+
 
 ---
 
-## 🔧 Tech Stack
-- Laravel (PHP)
-- Blade Templates
-- Tailwind CSS
-- MariaDB
-- Docker
-- Optional: Alpine.js, MUI, Bootstrap utilities *(bn: utilities = সহায়ক টুল)*
+🖼️ Screenshots
+
+![Screenshot 1](Screenshot/Screenshot_1.png)  
+![Screenshot 2](Screenshot/Screenshot_2.png)  
+![Screenshot 3](Screenshot/Screenshot_3.png)  
+![Screenshot 4](Screenshot/Screenshot_4.png)  
+![Screenshot 5](Screenshot/Screenshot_5.png)  
+![Screenshot 6](Screenshot/Screenshot_6.png)  
+![Screenshot 7](Screenshot/Screenshot_7.png)  
+![Screenshot 8](Screenshot/Screenshot_8.png)  
+![Screenshot 9](Screenshot/Screenshot_9.png)  
+![Screenshot 10](Screenshot/Screenshot_10.png)  
+![Screenshot 11](Screenshot/Screenshot_11.png)  
+
 
 ---
 
-## 🏗️ Architecture Notes *(optional)*
-- Modular suggestion engines (fertilizer, pesticide, disease)
-- Extensible *(bn: extensible = সহজে বর্ধিতযোগ্য)* model layer
-- Image inference pipeline stubbed for external ML integration
+🎯 Key Features
+
+⚡ Fast, actionable recommendations for crops, fertilizers, and pesticides.
+
+🌍 Multilingual interface: English, বাংলা, العربية.
+
+📷 Image-based disease detection using Google AI Studio.
+
+📚 Research content and real-life case studies.
+
+📦 Docker-ready deployment.
+
+🎛️ Lightweight backend optimized for modest servers.
+
+🧩 Modular architecture for easy future expansion.
+
+
 
 ---
 
-## 🚀 Local Setup
+🔧 Tech Stack
 
-```bash
-# Clone
+Backend: Laravel (PHP)
+
+Frontend: Blade Templates, Tailwind CSS
+
+Database: MariaDB
+
+Optional JS Libraries: Alpine.js, MUI, Bootstrap utilities
+
+AI Integration: Google AI Studio (for predictions and disease analysis)
+
+Deployment: Docker-ready
+
+
+
+---
+
+🏗️ Architecture
+
+Modular engines for:
+
+Crop suggestion
+
+Fertilizer recommendation
+
+Pesticide suggestion
+
+Disease detection (via Google AI Studio)
+
+
+Extensible model layer for future AI or analytics tools.
+
+Lightweight backend designed to run on shared hosting or modest servers.
+
+
+
+---
+
+🚀 Getting Started
+
+Clone the Repository
+
 git clone https://github.com/mhrsifat/smartAgro.git
 cd smartAgro
 
-# Environment
+Setup Environment
+
 cp .env.example .env
 php artisan key:generate
 
-# Backend
+Install Backend Dependencies
+
 composer install
 
-# Frontend
+Install Frontend Dependencies
+
 npm install
 npm run dev
 
-# Database
+Database Setup
+
 php artisan migrate --seed
 
+Run Application
 
-# Docker
+php artisan serve
+
+Run with Docker (Optional)
+
 docker compose up --build
 
 
-# Serve
-php artisan serve
+---
+
+⚡ AI Integration
+
+All recommendations and disease analysis rely on Google AI Studio models.
+
+Disease detection is image-based, using AI to classify crop health.
+
+Crop, fertilizer, and pesticide suggestions are enhanced using AI-driven recommendations for more precise results.
+
+
+
+---
+
+📖 License
+
+This project is licensed under the MIT License. See LICENSE for details.
+
+
+---
+
+🌟 Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository.
+
+
+2. Create a feature branch: git checkout -b feature/YourFeature.
+
+
+3. Commit your changes: git commit -m 'Add new feature'.
+
+
+4. Push to the branch: git push origin feature/YourFeature.
+
+
+5. Open a pull request.
+
+
+
+Please follow the code of conduct and write clear, descriptive commits.
+
+
+---
+
+📬 Contact
+
+Website: mhrsifat.xyz
+
+Email: mhrsifat@gmail.com
+
+
+
+---
+
+SmartAgro – Making agriculture smarter, one AI suggestion at a time. 🌱
