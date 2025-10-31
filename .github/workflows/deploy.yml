@@ -50,7 +50,7 @@ jobs:
             cd /home/${{ secrets.SERVER_USER }}/smartagro.mhrsifat.xyz
             git reset --hard
             git pull origin main
-            composer install --no-dev --optimize-autoloader
-            php artisan optimize:clear
+            composer install
             php artisan storage:link || true
+            php artisan optimize:clear
 
